@@ -59,7 +59,11 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
 	
 	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
-	ra = rc - ((BOARD_MCK / divisors[clockSelection])*PulseWidth)/1000000;
+	rt_kprintf("clock2 %d\n", BOARD_MCK / divisors[clockSelection]);
+	//rt_kprintf("clock2 * pulseWidth %d\n",(BOARD_MCK / divisors[clockSelection])*PulseWidth);
+	rt_kprintf("(clock2 * pulseWidth)/1000000 %d\n",((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth);
+	rt_kprintf("rc - (clock2 * pulseWidth)/1000000 %d\n",rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth);
+	ra = rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR = TC_CCR_CLKDIS;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_IDR = 0xFFFFFFFF;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_SR;	
@@ -97,9 +101,13 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 	}
 
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR =  TC_CCR_CLKEN | TC_CCR_SWTRG;	
-	rt_kprintf ("Start waveform: Frequency = %d Hz,pulseWidth = %2dus\n\r",			
+	rt_kprintf ("Start waveform: Frequency = %d Hz,pulseWidth = %2dus,TC_CMR %x TC_RA %x TC_RB %x TC_RC %x\n\r",			
 		Freq,			
-		PulseWidth);
+		PulseWidth,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_CMR,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_RA,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_RB,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
     return Function_OK;
 }
 ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq , int PulseWidth)
@@ -141,7 +149,8 @@ ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq 
 		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
 	
 	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
-	ra = rc - ((BOARD_MCK / divisors[clockSelection])*PulseWidth)/1000000;
+	ra = rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth;
+	
 
 	if (TimerID == 0) {
 		if (LineID == 1) {
