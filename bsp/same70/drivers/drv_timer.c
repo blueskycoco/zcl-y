@@ -7,12 +7,13 @@
 #define PIN_TC2_CH1   {PIO_PC9B_TIOB7, PIOC, ID_PIOC, PIO_PERIPH_B, PIO_DEFAULT}
 #define PIN_TC2_CH2   {PIO_PC12B_TIOB8, PIOC, ID_PIOC, PIO_PERIPH_B, PIO_DEFAULT}
 static const Pin pPwmpins[] = {PIN_TC0_CH0, PIN_TC0_CH1, PIN_TC2_CH1, PIN_TC2_CH2};
-
+const uint32_t divisors[5] = {2, 8, 32, 128, BOARD_MCK / 32768};
 
 ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int PulseWidth)
 {
 	Tc *tc_base;
 	uint32_t ra, rc;
+	uint32_t clockSelection;
 	
 	if (TimerID != 0 && TimerID !=1 
 		&& TimerID !=2 && TimerID != 3)
@@ -43,33 +44,82 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 
 	if (TimerID == 0)		
 		PMC_EnablePeripheral(ID_TC0);
-	else if (TimerID == 2)
-	{
+	else if (TimerID == 2) {
 		if (Timer_CHID == 1)
 			PMC_EnablePeripheral(ID_TC7);
 		else if (Timer_CHID == 2)
 			PMC_EnablePeripheral(ID_TC8);
 	}
+
+	if (Freq > 290)
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK2;
+	else if (Freq > 72)
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK3;
+	else
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
+	
+	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
+	ra = rc - ((BOARD_MCK / divisors[clockSelection])*PulseWidth)/1000000;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR = TC_CCR_CLKDIS;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_IDR = 0xFFFFFFFF;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_SR;	
-
-	tc_base->TC_CHANNEL[Timer_CHID].TC_CMR =		
-		waveformConfigurations[configuration].clockSelection/* Waveform Clock Selection */
-		| TC_CMR_WAVE									 /* Waveform mode is enabled */
-		| TC_CMR_ACPA_SET								 /* RA Compare Effect: set */
-		| TC_CMR_ACPC_CLEAR 							 /* RC Compare Effect: clear */
-		| TC_CMR_CPCTRG;								 /* UP mode with automatic trigger on RC Compare */
-	rc = (BOARD_MCK / divisors[waveformConfigurations[configuration].clockSelection]) \
-		/ waveformConfigurations[configuration].frequency;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_RC = rc;
-	ra = (100 - waveformConfigurations[configuration].dutyCycle) * rc / 100;
-	tc_base->TC_CHANNEL[Timer_CHID].TC_RA = ra;
+
+	if (TimerID == 0) {
+		if (LineID == 1) {
+			tc_base->TC_CHANNEL[Timer_CHID].TC_CMR =		
+			clockSelection									 
+			|TC_CMR_EEVT_XC0
+			|TC_CMR_WAVSEL_UP_RC
+			|TC_CMR_WAVE
+			|TC_CMR_ACPA_SET
+			|TC_CMR_ACPC_CLEAR;
+			tc_base->TC_CHANNEL[Timer_CHID].TC_RA = ra;
+		} else {
+			tc_base->TC_CHANNEL[Timer_CHID].TC_CMR =		
+			clockSelection									 
+			|TC_CMR_EEVT_XC0
+			|TC_CMR_WAVSEL_UP_RC
+			|TC_CMR_WAVE
+			|TC_CMR_BCPB_SET
+			|TC_CMR_BCPC_CLEAR;
+			tc_base->TC_CHANNEL[Timer_CHID].TC_RB = ra;
+		}
+	} else if (TimerID == 2) {
+		tc_base->TC_CHANNEL[Timer_CHID].TC_CMR =		
+		clockSelection									
+		|TC_CMR_EEVT_XC0
+		|TC_CMR_WAVSEL_UP_RC
+		|TC_CMR_WAVE
+		|TC_CMR_BCPB_SET
+		|TC_CMR_BCPC_CLEAR;
+		tc_base->TC_CHANNEL[Timer_CHID].TC_RB = ra;
+	}
+	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR =  TC_CCR_CLKEN | TC_CCR_SWTRG;	
-	rt_kprintf ("Start waveform: Frequency = %d Hz,Duty Cycle = %2d%%\n\r",			
-		waveformConfigurations[configuration].frequency,			
-		waveformConfigurations[configuration].dutyCycle);
+	rt_kprintf ("Start waveform: Frequency = %d Hz,pulseWidth = %2dus\n\r",			
+		Freq,			
+		PulseWidth);
     return Function_OK;
 }
-INIT_APP_EXPORT(GeneratePWMByTimers);
 
+#ifdef RT_USING_FINSH
+#include <finsh.h>
+static void pwm_timer(int TimerID,int Timer_CHID,int LineID,int Freq,int PulseWidth)
+{
+	int result = GeneratePWMByTimers(TimerID,Timer_CHID,LineID,Freq,PulseWidth);
+	if (result == 0)
+		rt_kprintf("GeneratePWMByTimers Function_OK\n");
+	else if (result == 1)
+		rt_kprintf("GeneratePWMByTimers TimesIDError\n");	
+	else if (result == 2)
+		rt_kprintf("GeneratePWMByTimers TimesCHIDError\n");
+	else if (result == 3)
+		rt_kprintf("GeneratePWMByTimers LineIDError\n");
+	else if (result == 4)
+		rt_kprintf("GeneratePWMByTimers WrongFrequency\n");
+	else if (result == 5)
+		rt_kprintf("GeneratePWMByTimers WrongPulseWidth\n");
+}
+FINSH_FUNCTION_EXPORT(pwm_timer, test pwm timer);
+#endif
