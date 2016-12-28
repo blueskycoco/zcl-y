@@ -13,6 +13,7 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 {
 	Tc *tc_base;
 	uint32_t ra, rc;
+	double temp;
 	uint32_t clockSelection;
 	
 	if (TimerID != 0 && TimerID !=1 
@@ -59,11 +60,8 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
 	
 	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
-	rt_kprintf("clock2 %d\n", BOARD_MCK / divisors[clockSelection]);
-	//rt_kprintf("clock2 * pulseWidth %d\n",(BOARD_MCK / divisors[clockSelection])*PulseWidth);
-	rt_kprintf("(clock2 * pulseWidth)/1000000 %d\n",((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth);
-	rt_kprintf("rc - (clock2 * pulseWidth)/1000000 %d\n",rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth);
-	ra = rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth;
+	temp = (BOARD_MCK / divisors[clockSelection])/1000000.0;
+	ra = rc - temp*PulseWidth;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR = TC_CCR_CLKDIS;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_IDR = 0xFFFFFFFF;	
 	tc_base->TC_CHANNEL[Timer_CHID].TC_SR;	
@@ -114,6 +112,7 @@ ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq 
 {
 	Tc *tc_base;
 	uint32_t ra, rc;
+	double temp;
 	uint32_t clockSelection;
 	
 	if (TimerID != 0 && TimerID !=1 
@@ -148,9 +147,9 @@ ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq 
 	else
 		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
 	
-	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
-	ra = rc - ((BOARD_MCK / divisors[clockSelection])/1000000)*PulseWidth;
-	
+	rc = (BOARD_MCK / divisors[clockSelection])/Freq;	
+	temp = (BOARD_MCK / divisors[clockSelection])/1000000.0;
+	ra = rc - temp*PulseWidth;
 
 	if (TimerID == 0) {
 		if (LineID == 1) {
