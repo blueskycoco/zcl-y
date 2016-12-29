@@ -6,7 +6,19 @@
 #define PIN_TC0_CH1   {PIO_PA1B_TIOB0, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT}
 #define PIN_TC2_CH1   {PIO_PC9B_TIOB7, PIOC, ID_PIOC, PIO_PERIPH_B, PIO_DEFAULT}
 #define PIN_TC2_CH2   {PIO_PC12B_TIOB8, PIOC, ID_PIOC, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM0_CH0  {PIO_PA23B_PWMC0_PWMH0, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM0_CH1  {PIO_PA2A_PWMC0_PWMH1, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_PWM0_CH2  {PIO_PB13A_PWMC0_PWML2, PIOB, ID_PIOB, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_PWM0_CH3  {PIO_PC13B_PWMC0_PWMH3, PIOC, ID_PIOC, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM1_CH0  {PIO_PD1B_PWMC1_PWMH0, PIOD, ID_PIOD, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM1_CH1  {PIO_PD3B_PWMC1_PWMH1, PIOD, ID_PIOD, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM1_CH2  {PIO_PD5B_PWMC1_PWMH2, PIOD, ID_PIOD, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWM1_CH3  {PIO_PD7B_PWMC1_PWMH3, PIOD, ID_PIOD, PIO_PERIPH_B, PIO_DEFAULT}
+
 static const Pin pPwmpins[] = {PIN_TC0_CH0, PIN_TC0_CH1, PIN_TC2_CH1, PIN_TC2_CH2};
+static const Pin pPwmpins1[] = {PIN_PWM0_CH0, PIN_PWM0_CH1, PIN_PWM0_CH2, PIN_PWM0_CH3,
+								PIN_PWM1_CH0,PIN_PWM1_CH1,PIN_PWM1_CH2,PIN_PWM1_CH3};
+
 const uint32_t divisors[5] = {2, 8, 32, 128, BOARD_MCK / 32768};
 
 ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int PulseWidth)
@@ -155,7 +167,41 @@ ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq 
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
 	return Function_OK;
 }
+ErrorID GeneratePWMByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWidth)
+{	
+	Pwm *pwm_base;
 
+	if (PWMID != 0 && PWMID !=1)
+		return PWMIDError;
+
+	if (PWM_CHID != 0 && PWM_CHID != 1
+		&& PWM_CHID != 2)
+		return PWMCHIDError;
+
+	if (LineID != 1 && LineID !=2)
+		return LineIDError;
+
+	if (Freq < 1 || Freq > 1000)
+		return WrongFrequency;
+
+	if (PulseWidth < 10 || PulseWidth > 5000)
+		return WrongPulseWidth;
+
+	if (Freq == 1000 && PulseWidth >= 1000)
+		return WrongPulseWidth;
+
+	if (PWMID == 0)
+		pwm_base = PWM0;
+	else
+		pwm_base = PWM1;
+	
+	PIO_Configure( pPwmpins, PIO_LISTSIZE(pPwmpins));
+	
+	if (PWMID == 0)		
+		PMC_EnablePeripheral(ID_PWM0);
+	else
+		PMC_EnablePeripheral(ID_PWM1);
+}
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 static void pwm_timerG(int TimerID,int Timer_CHID,int LineID,int Freq,int PulseWidth)
