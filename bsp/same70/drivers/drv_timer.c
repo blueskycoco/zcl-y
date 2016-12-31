@@ -174,6 +174,7 @@ ErrorID GeneratePWMByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWid
 	Pwm *pwm_base;
 	uint16_t period,duty;
 	int index;
+	int polarity = 0;
 	
 	if (PWMID != 0 && PWMID !=1)
 		return PWMIDError;
@@ -218,24 +219,31 @@ ErrorID GeneratePWMByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWid
 	else
 		index = 128;
 
+	if (PWMID == 0 && PWM_CHID == 2)
+		polarity = PWM_CMR_CPOL;
+	
+	PWMC_ConfigureClocks(pwm_base, BOARD_MCK/index, BOARD_MCK/index, BOARD_MCK);	
+
 	if (LineID == 1)
-	{
-		PWMC_ConfigureClocks(pwm_base, BOARD_MCK/index , 0, BOARD_MCK);		
-		PWMC_ConfigureChannel( pwm_base,
+	{	
+		PWMC_DisableChannel(pwm_base, PWM_CHID);
+		PWMC_ConfigureChannelExt( pwm_base,
 				PWM_CHID,
 				PWM_CMR_CPRE_CLKA,
 				0,
-				0
+				polarity,
+				0,0,0,0
 				);
 	}
 	else
 	{
-		PWMC_ConfigureClocks(pwm_base, 0, BOARD_MCK/index , BOARD_MCK);		
-		PWMC_ConfigureChannel( pwm_base,
+		PWMC_DisableChannel(pwm_base, PWM_CHID);			
+		PWMC_ConfigureChannelExt( pwm_base,
 			PWM_CHID,
 			PWM_CMR_CPRE_CLKB,
 			0,
-			0
+			polarity,
+			0,0,0,0
 			);
 	}
 	period = BOARD_MCK / (Freq * index);
@@ -290,33 +298,12 @@ ErrorID ChangePulseWidthByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int Pul
 		index = 64;
 	else
 		index = 128;
-/*
-	if (LineID == 1)
-	{
-		PWMC_ConfigureClocks(pwm_base, BOARD_MCK/index , 0, BOARD_MCK);		
-		PWMC_ConfigureChannel( pwm_base,
-				PWM_CHID,
-				PWM_CMR_CPRE_CLKA,
-				0,
-				0
-				);
-	}
-	else
-	{
-		PWMC_ConfigureClocks(pwm_base, 0, BOARD_MCK/index , BOARD_MCK);		
-		PWMC_ConfigureChannel( pwm_base,
-			PWM_CHID,
-			PWM_CMR_CPRE_CLKB,
-			0,
-			0
-			);
-	}*/
+	
 	period = BOARD_MCK / (Freq * index);
 	duty = period  - (double)(BOARD_MCK/(index*1000000.0))*PulseWidth;
 	rt_kprintf("period %d, duty %d\n",period,duty);
-	//PWMC_SetPeriod(pwm_base, PWM_CHID, period);
-	PWMC_SetDutyCycle(pwm_base, PWM_CHID, duty);
-	PWMC_EnableChannel(pwm_base, PWM_CHID);
+ 	PWMC_SetDutyCycle(pwm_base, PWM_CHID, duty);
+	//MC_EnableChannel(pwm_base, PWM_CHID);
 
 	return Function_OK;
 }
