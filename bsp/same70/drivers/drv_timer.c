@@ -375,27 +375,49 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
 	
 	if (TimerID == 0)		
 	{
-		PMC_EnablePeripheral(ID_TC0);
+		if (Timer_CHID == 1)
+			PMC_EnablePeripheral(ID_TC1);
+		else if (Timer_CHID == 2)
+			PMC_EnablePeripheral(ID_TC2);
+		else
+			return false;
 		irq = TC0_IRQn;
 	}
 	else if (TimerID == 1)
 	{
-		PMC_EnablePeripheral(ID_TC1);
+		if (Timer_CHID == 0)
+			PMC_EnablePeripheral(ID_TC3);
+		else if (Timer_CHID == 1)
+			PMC_EnablePeripheral(ID_TC4);
+		else if (Timer_CHID == 2)
+			PMC_EnablePeripheral(ID_TC5);
+		else
+			return false;
 		irq = TC1_IRQn;
 	}
 	else if (TimerID == 2) 
 	{
-		PMC_EnablePeripheral(ID_TC2);
+		if (Timer_CHID == 0)
+			PMC_EnablePeripheral(ID_TC6);
+		else
+			return false;
 		irq = TC2_IRQn;
 	}
 	else
 	{
-		PMC_EnablePeripheral(ID_TC3);
+		if (Timer_CHID == 0)
+			PMC_EnablePeripheral(ID_TC9);
+		else if (Timer_CHID == 1)
+			PMC_EnablePeripheral(ID_TC10);
+		else if (Timer_CHID == 2)
+			PMC_EnablePeripheral(ID_TC11);
+		else
+			return false;
 		irq = TC3_IRQn;
 	}
 	tc_callback = callback_function;
 	channel = Timer_CHID;
-
+#if 1
 	if (Freq > 290)
 		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK2;
 	else if (Freq > 72)
@@ -413,12 +435,30 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
 	NVIC_DisableIRQ(irq);
 	NVIC_ClearPendingIRQ(irq);
 	NVIC_SetPriority(irq, priority);
+	NVIC_EnableIRQ(irq);	
+	tc_base->TC_CHANNEL[Timer_CHID].TC_IER = TC_IER_CPCS;
+	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR =  TC_CCR_CLKEN | TC_CCR_SWTRG;
+#else
+	uint32_t div;
+	uint32_t tcclks;
+	/** Configure TC for a 4Hz frequency and trigger on RC compare. */
+	TC_FindMckDivisor(Freq, BOARD_MCK, &div, &tcclks, BOARD_MCK);
+
+	TC_Configure(tc_base, Timer_CHID, tcclks | TC_CMR_CPCTRG);
+	tc_base->TC_CHANNEL[Timer_CHID].TC_RC = (BOARD_MCK / div) / Freq;
+
+	/* Configure and enable interrupt on RC compare */
+	NVIC_ClearPendingIRQ(irq);
 	NVIC_EnableIRQ(irq);
-	tc_base->TC_CHANNEL[Timer_CHID].TC_IER |= TC_IER_CPCS;
-	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR =  TC_CCR_CLKEN | TC_CCR_SWTRG;	
+
+	tc_base->TC_CHANNEL[Timer_CHID].TC_IER = TC_IER_CPCS;
+
+	/** Start the counter */
+	TC_Start(tc_base, Timer_CHID);
+#endif
 	rt_kprintf ("StartTimesInterrupt: Frequency = %d Hz,TC_IER %x TC_CMR %x TC_RC %x\n\r",			
 		Freq,
-		tc_base->TC_CHANNEL[Timer_CHID].TC_IER,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_IMR,
 		tc_base->TC_CHANNEL[Timer_CHID].TC_CMR,
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
     return true;
