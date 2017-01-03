@@ -396,7 +396,12 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
 	tc_callback = callback_function;
 	channel = Timer_CHID;
 
-	clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK2;
+	if (Freq > 290)
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK2;
+	else if (Freq > 72)
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK3;
+	else 
+		clockSelection = TC_CMR_TCCLKS_TIMER_CLOCK4;
 	
 	rc = (BOARD_MCK / divisors[clockSelection])/Freq;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR = TC_CCR_CLKDIS;	
@@ -411,8 +416,9 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
 	NVIC_EnableIRQ(irq);
 	tc_base->TC_CHANNEL[Timer_CHID].TC_IER |= TC_IER_CPCS;
 	tc_base->TC_CHANNEL[Timer_CHID].TC_CCR =  TC_CCR_CLKEN | TC_CCR_SWTRG;	
-	rt_kprintf ("StartTimesInterrupt: Frequency = %d Hz,TC_CMR %x TC_RC %x\n\r",			
+	rt_kprintf ("StartTimesInterrupt: Frequency = %d Hz,TC_IER %x TC_CMR %x TC_RC %x\n\r",			
 		Freq,
+		tc_base->TC_CHANNEL[Timer_CHID].TC_IER,
 		tc_base->TC_CHANNEL[Timer_CHID].TC_CMR,
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
     return true;
