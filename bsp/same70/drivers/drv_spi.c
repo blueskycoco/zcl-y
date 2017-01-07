@@ -33,6 +33,8 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 		| SPI_PCS( cs )));	
 	SPI_ConfigureNPCS( spi_base,			
 		cs,			
+		SPI_CSR_NCPHA |
+		SPI_CSR_BITS_16_BIT |
 		SPI_DLYBCT( 1000, BOARD_MCK ) |			
 		SPI_DLYBS(1000, BOARD_MCK) |			
 		SPI_SCBR( clk, BOARD_MCK) );
@@ -68,6 +70,7 @@ bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	SPI_Write(spi_base, cs , 0);
 	*data = (uint8_t) SPI_Read(spi_base);
 	return true;
 }
@@ -102,6 +105,7 @@ bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	SPI_Write(spi_base, cs , 0);
 	*data = (uint16_t) SPI_Read(spi_base);
 	return true;
 }
