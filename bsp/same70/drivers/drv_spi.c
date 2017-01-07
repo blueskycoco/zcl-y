@@ -5,6 +5,8 @@
 
 bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 {
+	Spi *spi_base;
+	unsigned long clk;
 	if (SPI_ID != 0)
 		return false;
 
@@ -15,62 +17,90 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 		return false;
 
 	if (type == SPI_DEVICE_SAME70Q21_AD)
+	{
 		PIO_Configure(ad_spi_pins, PIO_LISTSIZE(ad_spi_pins));
-
-	SPI_Configure(SPI0, ID_SPI0, (SPI_MR_MSTR | SPI_MR_MODFDIS					
-		| SPI_PCS( 2 )));	
-	SPI_ConfigureNPCS( SPI0,			
-		2,			
+		clk = 13000000;
+	}
+	
+	if (SPI_ID == 0)
+		spi_base = SPI0;
+	else
+		spi_base = SPI1;
+	
+	SPI_Configure(spi_base, ID_SPI0, (SPI_MR_MSTR | SPI_MR_MODFDIS					
+		| SPI_PCS( cs )));	
+	SPI_ConfigureNPCS( spi_base,			
+		cs,			
 		SPI_DLYBCT( 1000, BOARD_MCK ) |			
 		SPI_DLYBS(1000, BOARD_MCK) |			
-		SPI_SCBR( 13000000, BOARD_MCK) );
-	SPI_Enable(SPI0);
+		SPI_SCBR( clk, BOARD_MCK) );
+	SPI_Enable(spi_base);
 	return true;
 }
 bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)	
-{
+{	
+	Spi *spi_base;
 	if (SPI_ID != 0)
 		return false;
 
 	if (cs != 2)
 		return false;
 	
-	SPI_Write(SPI0, cs , (uint16_t)data);
+	if (SPI_ID == 0)
+		spi_base = SPI0;
+	else
+		spi_base = SPI1;
+	SPI_Write(spi_base, cs , (uint16_t)data);
 	return true;
 }
 bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 {
+	Spi *spi_base;
 	if (SPI_ID != 0)
 		return false;
 
 	if (cs != 2)
 		return false;
 	
-	*data = (uint8_t) SPI_Read(SPI0);
+	if (SPI_ID == 0)
+		spi_base = SPI0;
+	else
+		spi_base = SPI1;
+	*data = (uint8_t) SPI_Read(spi_base);
 	return true;
 }
 
 bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 {
+	Spi *spi_base;
 	if (SPI_ID != 0)
 		return false;
 
 	if (cs != 2)
 		return false;
 	
-	SPI_Write(SPI0, cs , data);
+	if (SPI_ID == 0)
+		spi_base = SPI0;
+	else
+		spi_base = SPI1;
+	SPI_Write(spi_base, cs , data);
 	return true;
 }
 
 bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 {
+	Spi *spi_base;
 	if (SPI_ID != 0)
 		return false;
 
 	if (cs != 2)
 		return false;
 	
-	*data = (uint16_t) SPI_Read(SPI0);
+	if (SPI_ID == 0)
+		spi_base = SPI0;
+	else
+		spi_base = SPI1;
+	*data = (uint16_t) SPI_Read(spi_base);
 	return true;
 }
 #ifdef RT_USING_FINSH
