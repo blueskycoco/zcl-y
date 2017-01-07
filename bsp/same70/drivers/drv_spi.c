@@ -6,6 +6,7 @@
 bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 {
 	Spi *spi_base;
+	int id;
 	unsigned long clk;
 	if (SPI_ID != 0)
 		return false;
@@ -20,6 +21,7 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 	{
 		PIO_Configure(ad_spi_pins, PIO_LISTSIZE(ad_spi_pins));
 		clk = 13000000;
+		id = ID_SPI0;
 	}
 	
 	if (SPI_ID == 0)
@@ -27,7 +29,7 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 	else
 		spi_base = SPI1;
 	
-	SPI_Configure(spi_base, ID_SPI0, (SPI_MR_MSTR | SPI_MR_MODFDIS					
+	SPI_Configure(spi_base, id, (SPI_MR_MSTR | SPI_MR_MODFDIS					
 		| SPI_PCS( cs )));	
 	SPI_ConfigureNPCS( spi_base,			
 		cs,			
