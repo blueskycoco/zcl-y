@@ -11,8 +11,8 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 	if (SPI_ID != 0)
 		return false;
 
-	if (cs != 2)
-		return false;
+	//if (cs != 2)
+	//	return false;
 
 	if (type != SPI_DEVICE_SAME70Q21_AD)
 		return false;
@@ -45,8 +45,8 @@ bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)
 	if (SPI_ID != 0)
 		return false;
 
-	if (cs != 2)
-		return false;
+	//if (cs != 2)
+	//	return false;
 	
 	if (SPI_ID == 0)
 		spi_base = SPI0;
@@ -61,8 +61,8 @@ bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 	if (SPI_ID != 0)
 		return false;
 
-	if (cs != 2)
-		return false;
+	//if (cs != 2)
+	//	return false;
 	
 	if (SPI_ID == 0)
 		spi_base = SPI0;
@@ -78,8 +78,8 @@ bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 	if (SPI_ID != 0)
 		return false;
 
-	if (cs != 2)
-		return false;
+	//if (cs != 2)
+	//	return false;
 	
 	if (SPI_ID == 0)
 		spi_base = SPI0;
@@ -95,8 +95,8 @@ bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 	if (SPI_ID != 0)
 		return false;
 
-	if (cs != 2)
-		return false;
+	//if (cs != 2)
+	//	return false;
 	
 	if (SPI_ID == 0)
 		spi_base = SPI0;
