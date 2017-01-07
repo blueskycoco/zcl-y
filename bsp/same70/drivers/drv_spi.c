@@ -20,7 +20,7 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 	if (type == SPI_DEVICE_SAME70Q21_AD)
 	{
 		PIO_Configure(ad_spi_pins, PIO_LISTSIZE(ad_spi_pins));
-		clk = 13000000;
+		clk = 2400000;
 		id = ID_SPI0;
 	}
 	
