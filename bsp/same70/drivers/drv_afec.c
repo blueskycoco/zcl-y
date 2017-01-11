@@ -63,7 +63,7 @@ bool AFEC_init(int AFEC_ID, int CH_ID)
 	
 	AFEC_EnableChannel(afec_base, CH_ID);	
 
-	rt_kprintf("AFEC%d->AFEC_ACR %x, MR %x, EMR %x, CR %x\n", AFEC_ID,
+	rt_kprintf("AFEC%d->AFEC_ACR 0x%x, MR 0x%x, EMR 0x%x, CR 0x%x\n", AFEC_ID,
 		afec_base->AFEC_ACR, afec_base->AFEC_MR,
 		afec_base->AFEC_EMR, afec_base->AFEC_CR);
 	return true;
@@ -72,7 +72,7 @@ bool AFEC_init(int AFEC_ID, int CH_ID)
 bool AFEC_get_data(int AFEC_ID, int CH_ID, uint32_t *data)
 {
 	Afec *afec_base;
-
+	int offset;
 	if (AFEC_ID != 0 && AFEC_ID != 1)
 		return false;
 
@@ -90,7 +90,32 @@ bool AFEC_get_data(int AFEC_ID, int CH_ID, uint32_t *data)
 	{
 		afec_base = AFEC1;
 	}
-	*data = AFEC_GetConvertedData(afec_base, CH_ID);
+
+	if (CH_ID == 6)
+	{
+		offset = AFEC_IER_EOC6;
+		AFEC_SetChannelGain(afec_base, AFEC_CGR_GAIN6(0));
+	}
+	else if (CH_ID == 7)
+	{
+		offset = AFEC_IER_EOC7;
+		AFEC_SetChannelGain(afec_base, AFEC_CGR_GAIN7(0));
+	}
+	else
+	{
+		offset = AFEC_IER_EOC8;
+		AFEC_SetChannelGain(afec_base, AFEC_CGR_GAIN8(0));
+	}
+	AFEC_SetAnalogOffset(afec_base, CH_ID, 0x200);
+	AFEC_SetCompareMode(afec_base, AFEC_EMR_CMPMODE(AFEC_EMR_CMPMODE_IN)|
+						AFEC_EMR_CMPSEL(CH_ID)|AFEC_EMR_CMPFILTER(0));
+	AFEC_EnableChannel(afec_base, CH_ID);	
+	afec_base->AFEC_IER |= offset;
+	afec_base->AFEC_CSELR = CH_ID;
+	afec_base->AFEC_CR = AFEC_CR_START;
+	while(!(AFEC_GetStatus(afec_base)&offset))
+		rt_thread_delay(1);
+	*data = afec_base->AFEC_CDR;
 	rt_kprintf("data %d\n", *data);
 	return true;
 }
