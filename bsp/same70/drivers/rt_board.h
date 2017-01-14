@@ -19,9 +19,13 @@
 
 // <<< Use Configuration Wizard in Context Menu >>>
 /* board configuration */
+#define RT_USING_USART0
+#define RT_USING_USART1
+#define RT_USING_UART0
 #define RT_USING_UART1
 #define RT_USING_UART2
 #define RT_USING_UART3
+#define RT_USING_UART4
 
 // <o> SDCard Driver <1=>SDIO sdcard <0=>SPI MMC card
 //  <i>Default: 1
