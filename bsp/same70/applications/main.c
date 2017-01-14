@@ -24,7 +24,7 @@
  */
 
 #include <rtthread.h>
-struct rt_semaphore rx_sem;
+static struct rt_semaphore rx_sem;
 rt_device_t dev_usart1 = RT_NULL;
 
 static rt_err_t rx_ind(rt_device_t dev, rt_size_t size)
@@ -60,7 +60,7 @@ int main(void)
 		rt_device_set_rx_indicate(dev_usart1, rx_ind);
 		rt_thread_startup(rt_thread_create("usart1_rx",
 			usart1_rx, RT_NULL,2048, 20, 10));
-	}	
+	}
     return 0;
 }
 

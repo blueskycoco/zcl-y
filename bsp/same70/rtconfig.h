@@ -73,7 +73,7 @@
 // <bool name="RT_USING_SERIAL" description="Using Serial Device Driver Framework" default="true" />
 #define RT_USING_SERIAL
 // <integer name="RT_UART_RX_BUFFER_SIZE" description="The buffer size for UART reception" default="64" />
-#define RT_SERIAL_RB_BUFSZ    64
+#define RT_SERIAL_RB_BUFSZ    128//64
 // <bool name="RT_USING_SPI" description="Using SPI Device Driver Framework" default="true" />
 #define RT_USING_SPI
 // <bool name="RT_USING_I2C" description="Using I2C Device Driver Framework" default="true" />
