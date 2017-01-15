@@ -73,10 +73,8 @@ int main(void)
 	}
 
 #ifdef RT_USING_DFS
-	rt_hw_spi_init();
-	rt_kprintf("rt_hw_spi_init\n");
-    rt_sfud_flash_probe("flash", "spi10");
-	rt_kprintf("rt_sfud_flash_probe\n");
+	rt_hw_spi_init();	
+    rt_sfud_flash_probe("flash", "spi10");	
     //rt_partition_init("flash", &partitions[0]);
     if (dfs_mount("rootfs", "/", "elm", 0, 0) == 0)
     {
