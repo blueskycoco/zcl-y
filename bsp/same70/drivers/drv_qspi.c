@@ -81,9 +81,15 @@ static rt_uint32_t xfer(struct rt_spi_device* device, struct rt_spi_message* mes
 {
     //struct same70_qspi_bus * same70_qspi_bus = (struct same70_qspi_bus *)device->bus;
     //struct rt_spi_configuration * config = &device->config;
-	
+	int i;
 	rt_kprintf("xfer cs take %d, cs release %d, length %d\n",message->cs_take,
 		message->cs_release, message->length);
+	if (message->recv_buf)
+	{
+		rt_uint8_t * recv_ptr = message->recv_buf;
+		for (i=0;i<message->length;i++)
+			*recv_ptr++ = i;
+	}
 #if 0
     SPI_TypeDef * SPI = same70_qspi_bus->SPI;
     struct same70_qspi_cs * same70_qspi_cs = device->parent.user_data;
