@@ -24,6 +24,16 @@
  */
 
 #include <rtthread.h>
+#ifdef RT_USING_DFS
+/* dfs filesystem:ELM filesystem init */
+#include <dfs_elm.h>
+/* dfs Filesystem APIs */
+#include <dfs_fs.h>
+#include <spi_flash.h>
+#include <spi_flash_sfud.h>
+#include "drv_qspi.h"
+#endif
+
 static struct rt_semaphore rx_sem;
 rt_device_t dev_usart1 = RT_NULL;
 
@@ -61,6 +71,22 @@ int main(void)
 		rt_thread_startup(rt_thread_create("usart1_rx",
 			usart1_rx, RT_NULL,2048, 20, 10));
 	}
+
+#ifdef RT_USING_DFS
+	rt_hw_spi_init();
+	rt_kprintf("rt_hw_spi_init\n");
+    rt_sfud_flash_probe("flash", "spi10");
+	rt_kprintf("rt_sfud_flash_probe\n");
+    //rt_partition_init("flash", &partitions[0]);
+    if (dfs_mount("rootfs", "/", "elm", 0, 0) == 0)
+    {
+        rt_kprintf("root file system initialized!\n");
+	}
+	else
+	{
+		rt_kprintf("root file system failed!\n");
+	}
+#endif
     return 0;
 }
 
