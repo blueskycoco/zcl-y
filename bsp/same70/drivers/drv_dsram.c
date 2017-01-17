@@ -4,7 +4,7 @@
 #include "drv_dsram.h"
 
 const Pin pinsMutex[] = {BOARD_MUTEX_PINS};
-static volatile uint8_t *g_pui8EBISram;
+volatile uint8_t *g_pui8EBISram = (uint8_t *)EBI_CS2_ADDR;
 
 bool dsram_init(void)
 {
@@ -14,17 +14,23 @@ bool dsram_init(void)
 	PMC_EnablePeripheral(ID_SMC);
 
 	/* Configure SMC, NCS2 is assigned to Dual sram */	
-	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_SETUP = 0x01010101;
-	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_PULSE = 0x01010101;
-	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_CYCLE = 0x00030003;
+	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_SETUP = SMC_SETUP_NWE_SETUP(2)			
+					| SMC_SETUP_NCS_WR_SETUP(0)			
+					| SMC_SETUP_NRD_SETUP(0)			
+					| SMC_SETUP_NCS_RD_SETUP(0);
+	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_PULSE = SMC_PULSE_NWE_PULSE(6)			
+					| SMC_PULSE_NCS_WR_PULSE(0xA)			
+					| SMC_PULSE_NRD_PULSE(0xA)			
+					| SMC_PULSE_NCS_RD_PULSE(0xA);
+	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_CYCLE = SMC_CYCLE_NWE_CYCLE(0xA)			
+					| SMC_CYCLE_NRD_CYCLE(0xA);
 	SMC->SMC_CS_NUMBER[SMC_EBI_DSRAM_CS].SMC_MODE  = 
 						SMC_MODE_READ_MODE			|
 						SMC_MODE_WRITE_MODE		    |	
 						SMC_MODE_DBW_16_BIT		    |							
-						SMC_MODE_BAT_BYTE_WRITE		|
+						SMC_MODE_BAT_BYTE_SELECT	|
 						SMC_MODE_TDF_MODE			|
-						SMC_MODE_TDF_CYCLES(0x1);
-	g_pui8EBISram = (uint8_t *)0x60000000;
+						SMC_MODE_TDF_CYCLES(0xF);
 	return true;
 }
 
@@ -34,7 +40,7 @@ bool dsram_write(uint8_t addr, uint8_t *data, int len)
 		return false;
 	//while (PIO_Get(&pinsMutex[1]));
 	PIO_Set(&pinsMutex[0]);
-	rt_memcpy ((void *)(g_pui8EBISram + addr*2), (const void *)data, len);
+	rt_memcpy ((void *)(g_pui8EBISram + addr), (const void *)data, len);
 	PIO_Clear(&pinsMutex[0]);
 	return true;
 }
@@ -44,7 +50,7 @@ bool dsram_read(uint8_t addr, uint8_t *data, int len)
 		return false;
 	//while (PIO_Get(&pinsMutex[1]));
 	PIO_Set(&pinsMutex[0]);
-	rt_memcpy ((void *)data, (const void *)(g_pui8EBISram + addr*2), len);
+	rt_memcpy ((void *)data, (const void *)(g_pui8EBISram + addr), len);
 	PIO_Clear(&pinsMutex[0]);
 	return true;
 }
@@ -69,7 +75,7 @@ static void dsram_read_t(int addr, int len)
 		for (i = 0; i < len; i++)
 		{
 			rt_kprintf("%02x ", data[i]);
-			if ((i+1)%8 == 0)
+			if ((i+1)%32 == 0)
 				rt_kprintf("\n");
 		}
 		rt_kprintf("\n");
@@ -85,7 +91,7 @@ static void dsram_write_t(int addr, int begin, int len)
 	{
 		data[i] = begin+i;
 		rt_kprintf("%02x ", data[i]);
-		if ((i+1)%8 == 0)
+		if ((i+1)%32 == 0)
 			rt_kprintf("\n");
 	}
 	rt_kprintf("\n");
