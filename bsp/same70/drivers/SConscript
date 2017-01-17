@@ -8,6 +8,7 @@ src += Glob('drv_timer.c')
 src += Glob('drv_spi.c')
 src += Glob('drv_afec.c')
 src += Glob('drv_qspi.c')
+src += Glob('drv_dsram.c')
 CPPPATH = [cwd]
 
 group = DefineGroup('Drivers', src, depend = [''], CPPPATH = CPPPATH)
