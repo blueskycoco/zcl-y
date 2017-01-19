@@ -68,6 +68,7 @@ bool AFEC_init(int AFEC_ID, int CH_ID)
 		afec_base->AFEC_EMR, afec_base->AFEC_CR);
 	return true;
 }
+RTM_EXPORT(AFEC_init);
 
 bool AFEC_get_data(int AFEC_ID, int CH_ID, uint32_t *data)
 {
@@ -119,6 +120,8 @@ bool AFEC_get_data(int AFEC_ID, int CH_ID, uint32_t *data)
 	rt_kprintf("data %d\n", *data);
 	return true;
 }
+RTM_EXPORT(AFEC_get_data);
+
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 static void afec_init_t(int AFEC_ID, int CH_ID)

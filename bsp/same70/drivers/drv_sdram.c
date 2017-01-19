@@ -16,6 +16,8 @@ bool sdram_init(void)
 	
 	return true;
 }
+RTM_EXPORT(sdram_init);
+
 void *sdram_malloc(unsigned long size)
 {
     return rt_memheap_alloc(&system_heap, size);
@@ -52,7 +54,7 @@ static void sdram_test(void)
 	else		
 		rt_kprintf("sdram_test failed\n");
 }
-
+RTM_EXPORT(sdram_test);
 FINSH_FUNCTION_EXPORT(sdram_init_t, test sdram_init);
 FINSH_FUNCTION_EXPORT(sdram_test, test sdram);
 #endif

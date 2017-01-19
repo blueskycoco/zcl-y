@@ -33,7 +33,11 @@
 #include <spi_flash_sfud.h>
 #include "drv_qspi.h"
 #endif
-
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <msh.h>
 static struct rt_semaphore rx_sem;
 rt_device_t dev_usart1 = RT_NULL;
 
@@ -84,6 +88,22 @@ int main(void)
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
+	
     return 0;
 }
+#ifdef FINSH_USING_MSH
+#include <finsh.h>
 
+#ifdef DFS_USING_WORKDIR
+int cmd_exec(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        msh_exec(argv[1],strlen(argv[1]));
+    }
+
+    return 0;
+}
+FINSH_FUNCTION_EXPORT_ALIAS(cmd_exec, __cmd_exec, exec a app module);
+#endif
+#endif

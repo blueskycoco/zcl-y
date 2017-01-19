@@ -112,6 +112,8 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
     return Function_OK;
 }
+RTM_EXPORT(GeneratePWMByTimers);
+
 ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq , int PulseWidth)
 {
 	Tc *tc_base;

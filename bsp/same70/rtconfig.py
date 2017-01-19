@@ -11,10 +11,10 @@ if os.getenv('RTT_ROOT'):
     RTT_ROOT = os.getenv('RTT_ROOT')
 
 PLATFORM 	= 'gcc'
-EXEC_PATH 	= r'z:/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
+#EXEC_PATH 	= r'z:/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
 #EXEC_PATH      = r'e:/project/atmel/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
 #EXEC_PATH 	= r'd:/projec/atsame70q21/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
-#EXEC_PATH   = r'e:/project/atmel/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
+EXEC_PATH   = r'e:/project/atmel/gcc-arm-none-eabi-5_4-2016q3-20160926-win32/bin'
 BUILD = 'debug'
 
 # toolchains

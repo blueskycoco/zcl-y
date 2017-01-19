@@ -94,14 +94,14 @@ rt_err_t rym_write_to_file(rt_device_t idev)
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-rt_err_t ry(char *dname)
+rt_err_t ry(int argc, char **argv)
 {
     rt_err_t res;
 
-    rt_device_t dev = rt_device_find(dname);
+    rt_device_t dev = rt_device_find(argv[1]);
     if (!dev)
     {
-        rt_kprintf("could not find device:%s\n", dname);
+        rt_kprintf("could not find device:%s\n", argv[1]);
         return -RT_ERROR;
     }
 
@@ -109,5 +109,5 @@ rt_err_t ry(char *dname)
 
     return res;
 }
-FINSH_FUNCTION_EXPORT(ry, receive files by ymodem protocol);
+FINSH_FUNCTION_EXPORT_ALIAS(ry, __cmd_ry, receive files by ymodem protocol);
 #endif
