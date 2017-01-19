@@ -41,6 +41,8 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 	SPI_Enable(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_init);
+
 bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)	
 {	
 	Spi *spi_base;
@@ -57,6 +59,8 @@ bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)
 	SPI_Write(spi_base, cs , (uint16_t)data);
 	return true;
 }
+RTM_EXPORT(spi_write8bits);
+
 bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 {
 	Spi *spi_base;
@@ -74,6 +78,7 @@ bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 	*data = (uint8_t) SPI_Read(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_read8bits);
 
 bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 {
@@ -91,6 +96,7 @@ bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 	SPI_Write(spi_base, cs , data);
 	return true;
 }
+RTM_EXPORT(spi_write16bits);
 
 bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 {
@@ -109,6 +115,8 @@ bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 	*data = (uint16_t) SPI_Read(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_read16bits);
+
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 static void spi_init_t(int SPI_ID, uint8_t cs, uint8_t type)
