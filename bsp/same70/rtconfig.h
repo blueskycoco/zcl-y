@@ -73,7 +73,7 @@
 // <bool name="RT_USING_SERIAL" description="Using Serial Device Driver Framework" default="true" />
 #define RT_USING_SERIAL
 // <integer name="RT_UART_RX_BUFFER_SIZE" description="The buffer size for UART reception" default="64" />
-#define RT_SERIAL_RB_BUFSZ    64
+#define RT_SERIAL_RB_BUFSZ    2048//64
 // <bool name="RT_USING_SPI" description="Using SPI Device Driver Framework" default="true" />
 #define RT_USING_SPI
 // <bool name="RT_USING_I2C" description="Using I2C Device Driver Framework" default="true" />
@@ -85,7 +85,7 @@
 // <section name="RT_USING_CONSOLE" description="Using console" default="true" >
 #define RT_USING_CONSOLE
 // <integer name="RT_CONSOLEBUF_SIZE" description="The buffer size for console output" default="128" />
-#define RT_CONSOLEBUF_SIZE	128
+#define RT_CONSOLEBUF_SIZE	2048
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart" />
 #define RT_CONSOLE_DEVICE_NAME	"usart0"
 // </section>
@@ -163,4 +163,8 @@
 #define RT_USING_USER_MAIN
 #define RT_USING_SFUD
 #define RT_SFUD_USING_SFDP
+#define RT_USING_RYM
+#define RT_USING_CPLUSPLUS
+//#define RT_SFUD_USING_FLASH_INFO_TABLE
+//#define RT_DEBUG_SFUD 1
 #endif
