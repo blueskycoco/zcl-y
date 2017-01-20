@@ -32,6 +32,7 @@
 #include <spi_flash.h>
 #include <spi_flash_sfud.h>
 #include "drv_qspi.h"
+#include "drv_sdio.h"
 #endif
 #include <stdint.h>
 #include <stdio.h>
@@ -58,6 +59,28 @@ static void usart1_rx(void* parameter)
 		rt_kprintf("%s", buf);
 	}
 }
+int mnt_init(void)
+{
+#ifdef RT_USING_SDIO
+    rt_mmcsd_core_init();
+    rt_mmcsd_blk_init();
+
+    rt_hw_sdio_init();
+    rt_thread_delay(RT_TICK_PER_SECOND * 1);
+
+    /* mount sd card fat partition 1 as root directory */
+    if (dfs_mount("sd0", "/sd", "elm", 0, 0) == 0)
+    {
+        rt_kprintf("SD File System initialized!\n");
+    }
+    else
+    {
+        rt_kprintf("SD File System initialzation failed!\n");
+    }
+#endif
+}
+//INIT_ENV_EXPORT(mnt_init);
+
 int main(void)
 {
 	dev_usart1 = rt_device_find("usart1");
@@ -88,7 +111,7 @@ int main(void)
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
-	
+	//mnt_init();
     return 0;
 }
 #ifdef FINSH_USING_MSH
