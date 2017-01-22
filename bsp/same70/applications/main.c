@@ -67,7 +67,7 @@ int mnt_init(void)
     rt_mmcsd_core_init();
     rt_mmcsd_blk_init();
 
-    rt_hw_sdio_init();
+//    rt_hw_sdio_init();
     rt_thread_delay(RT_TICK_PER_SECOND * 1);
 
     /* mount sd card fat partition 1 as root directory */
