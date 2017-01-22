@@ -56,14 +56,8 @@ bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
-	
-	SPI_ConfigureNPCS( spi_base,			
-		cs,			
-		SPI_CSR_NCPHA |
-		SPI_CSR_BITS_8_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
-		SPI_SCBR( 2400000, BOARD_MCK) );
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_8_BIT;
 	SPI_Write(spi_base, cs , (uint16_t)data);
 	return true;
 }
@@ -83,13 +77,8 @@ bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 	else
 		spi_base = SPI1;
 	
-	SPI_ConfigureNPCS( spi_base,			
-		cs,			
-		SPI_CSR_NCPHA |
-		SPI_CSR_BITS_8_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
-		SPI_SCBR( 2400000, BOARD_MCK) );
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_8_BIT;
 	SPI_Write(spi_base, cs , 0);
 	*data = (uint8_t) SPI_Read(spi_base);
 	return true;
@@ -110,13 +99,8 @@ bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 	else
 		spi_base = SPI1;
 	
-	SPI_ConfigureNPCS( spi_base,			
-		cs,			
-		SPI_CSR_NCPHA |
-		SPI_CSR_BITS_16_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
-		SPI_SCBR( 2400000, BOARD_MCK) );
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_16_BIT;
 	SPI_Write(spi_base, cs , data);
 	return true;
 }
@@ -136,13 +120,8 @@ bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 	else
 		spi_base = SPI1;
 	
-	SPI_ConfigureNPCS( spi_base,			
-		cs,			
-		SPI_CSR_NCPHA |
-		SPI_CSR_BITS_16_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
-		SPI_SCBR( 2400000, BOARD_MCK) );
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_16_BIT;
 	SPI_Write(spi_base, cs , 0);
 	*data = (uint16_t) SPI_Read(spi_base);
 	return true;
