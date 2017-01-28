@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <msh.h>
-#if 0
+#if 1
 static struct rt_semaphore rx_sem;
 rt_device_t dev_usart1 = RT_NULL;
 
@@ -66,7 +66,7 @@ void mnt_init(void)
 
     if (RT_EOK != rt_hw_sdio_init())
 		return ;
-    rt_thread_delay(RT_TICK_PER_SECOND * 1);
+    //rt_thread_delay(RT_TICK_PER_SECOND * 1);
 
     /* mount sd card fat partition 1 as root directory */
     if (dfs_mount("sd0", "/sd", "elm", 0, 0) == 0)
@@ -77,6 +77,7 @@ void mnt_init(void)
     {
         rt_kprintf("SD File System initialzation failed!\n");
     }
+//    mkfs("elm","sd0");
 	/*int fd;
 
 	fd = open("/1.txt", O_RDWR | O_APPEND | O_CREAT, 0);
@@ -94,7 +95,7 @@ void mnt_init(void)
 
 int main(void)
 {
-#if 0
+#if 1
 	dev_usart1 = rt_device_find("usart1");
 
 	if (dev_usart1 == RT_NULL) {
