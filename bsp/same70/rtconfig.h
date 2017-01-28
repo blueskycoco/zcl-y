@@ -87,7 +87,7 @@
 // <integer name="RT_CONSOLEBUF_SIZE" description="The buffer size for console output" default="128" />
 #define RT_CONSOLEBUF_SIZE	128
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart" />
-#define RT_CONSOLE_DEVICE_NAME	"usart0"
+#define RT_CONSOLE_DEVICE_NAME	"usart1"
 // </section>
 
 // <bool name="RT_USING_COMPONENTS_INIT" description="Using RT-Thread components initialization" default="true" />
@@ -167,5 +167,4 @@
 #define RT_USING_CPLUSPLUS
 //#define RT_SFUD_USING_FLASH_INFO_TABLE
 //#define RT_DEBUG_SFUD 1
-#define RT_USING_SDIO
 #endif

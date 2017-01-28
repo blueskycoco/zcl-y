@@ -6,6 +6,6 @@
 #include "rt_board.h"
 
 /* public function list */
-void rt_hw_sdio_init(void);
+rt_int32_t rt_hw_sdio_init(void);
 #endif 
 

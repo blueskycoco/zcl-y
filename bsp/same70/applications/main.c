@@ -61,13 +61,11 @@ static void usart1_rx(void* parameter)
 	}
 }
 #endif
-int mnt_init(void)
+void mnt_init(void)
 {
-#ifdef RT_USING_SDIO
-    rt_mmcsd_core_init();
-    rt_mmcsd_blk_init();
 
-//    rt_hw_sdio_init();
+    if (RT_EOK != rt_hw_sdio_init())
+		return ;
     rt_thread_delay(RT_TICK_PER_SECOND * 1);
 
     /* mount sd card fat partition 1 as root directory */
@@ -79,7 +77,18 @@ int mnt_init(void)
     {
         rt_kprintf("SD File System initialzation failed!\n");
     }
-#endif
+	/*int fd;
+
+	fd = open("/1.txt", O_RDWR | O_APPEND | O_CREAT, 0);
+	if (fd >= 0)
+	{
+		write (fd, "1234", 4);
+		close(fd);
+	}
+	else
+	{
+		rt_kprintf("open file:/1.txt failed!\n");
+	}*/
 }
 //INIT_ENV_EXPORT(mnt_init);
 
@@ -107,14 +116,19 @@ int main(void)
     rt_sfud_flash_probe("flash", "spi10");	
     if (dfs_mount("flash", "/", "elm", 0, 0) == 0)
     {
+    	DIR *dir = RT_NULL;
         rt_kprintf("root file system initialized!\n");
+		if ((dir = opendir("/sd"))==RT_NULL)
+			mkdir("/sd",0);
+		else
+			closedir(dir);
 	}
 	else
 	{
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
-	//mnt_init();
+	mnt_init();
     return 0;
 }
 #ifdef FINSH_USING_MSH
