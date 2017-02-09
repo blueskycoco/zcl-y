@@ -52,6 +52,7 @@ static void usart1_rx(void* parameter)
 {
 	int len = 0;
 	rt_uint8_t buf[256] = {0};
+	return;
 	while (1)
 	{	
 		if (rt_sem_take(&rx_sem, RT_WAITING_FOREVER) != RT_EOK) continue;
@@ -95,7 +96,7 @@ void mnt_init(void)
 
 int main(void)
 {
-#if 1
+#if 0
 	dev_usart1 = rt_device_find("usart1");
 
 	if (dev_usart1 == RT_NULL) {
@@ -112,6 +113,8 @@ int main(void)
 			usart1_rx, RT_NULL,2048, 20, 10));
 	}
 #endif
+	rt_thread_startup(rt_thread_create("usart1_rx",
+		usart1_rx, RT_NULL,2048, 20, 10));
 #ifdef RT_USING_DFS
 	rt_hw_spi_init();	
     rt_sfud_flash_probe("flash", "spi10");	
@@ -129,7 +132,7 @@ int main(void)
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
-	mnt_init();
+//	mnt_init();
     return 0;
 }
 #ifdef FINSH_USING_MSH
