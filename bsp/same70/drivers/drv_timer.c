@@ -402,7 +402,7 @@ void TC11_Handler(void)
 		tc_callback();
 }
 
-bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callback_t callback_function)
+bool StartTimersInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callback_t callback_function)
 {
 	Tc *tc_base;
 	uint32_t rc;
@@ -517,7 +517,7 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
     return true;
 
 }
-RTM_EXPORT(StartTimesInterrupt);
+RTM_EXPORT(StartTimersInterrupt);
 
 bool StopTimersInterrupt(int TimerID,int Timer_CHID)
 {
@@ -687,7 +687,7 @@ void tc_cb()
 }
 static void timer_start(int TimerID,int Timer_CHID,int Freq,int priority)
 {
-	if(StartTimesInterrupt(TimerID,Timer_CHID,Freq,priority,(callback_t) tc_cb))
+	if(StartTimersInterrupt(TimerID,Timer_CHID,Freq,priority,(callback_t) tc_cb))
 		rt_kprintf("StartTimesInterrupt ok\n");
 	else
 		rt_kprintf("StartTimesInterrupt failed\n");
