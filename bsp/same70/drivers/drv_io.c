@@ -17,7 +17,7 @@
 
 #define PINS_IO  {PIN_PC_17,PIN_PC_10,PIN_PD_4,PIN_PD_11,PIN_PD_10,PIN_PD_24,PIN_PA_24,PIN_PC_14,PIN_PD_9,PIN_PD_2,PIN_PC_16,PIN_PA_29}
 typedef void (*callback_t)();
-callback_t io_callback;
+callback_t io_callback = RT_NULL;
 
 static const Pin pinsio[] = PINS_IO;
 
@@ -36,17 +36,23 @@ int io_input(int id)
 }
 RTM_EXPORT(io_input);
 
+void PIOC_Handler_io(const Pin *pin)
+{
+	rt_interrupt_enter();
+	if(io_callback != RT_NULL)
+		io_callback();
+	rt_interrupt_leave();
+}
+
 int io_init(callback_t callback_function)
 {
-	io_callback = callback_function;
+	if(callback_function!=RT_NULL)
+	{
+		io_callback = callback_function;
+		PIO_ConfigureIt(&pinsio[0],PIOC_Handler_io);
+	}
 	PIO_Configure(pinsio, PIO_LISTSIZE(pinsio));
 	return 0;
 }
 RTM_EXPORT(io_init);
 
-void PIOC_Handler(void)
-{
-	rt_interrupt_enter();
-	io_callback();
-	rt_interrupt_leave();
-}
