@@ -35,8 +35,8 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 		cs,			
 		SPI_CSR_NCPHA |
 		SPI_CSR_BITS_16_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
+		SPI_DLYBCT( 10, BOARD_MCK ) |			
+		SPI_DLYBS(10, BOARD_MCK) |			
 		SPI_SCBR( clk, BOARD_MCK) );
 	SPI_Enable(spi_base);
 	return true;

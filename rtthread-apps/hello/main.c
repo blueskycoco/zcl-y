@@ -24,28 +24,33 @@
  */
 
 #include <rtthread.h>
-#include "user.h"
+#include <stdint.h>
+//#include "user.h"
 
 
-enum _SYS_MODE WOKING_MODE=CALIBRATION_MODE;
+//enum _SYS_MODE WOKING_MODE=CALIBRATION_MODE;
 unsigned int AD_DATA[8]={0};
 float sensor_data[11]={0};
 uint8_t temp_time=0;
-struct _CalBaseProtocol IMU_Data;
-struct _CalSendProtocol IMU_SData;
+//struct _CalBaseProtocol IMU_Data;
+//struct _CalSendProtocol IMU_SData;
 char *p_data;
 char sendchardata[51]={0};
 char Average_Time=0;
 float imu_sum[11]={0};
 
-
+void spi_getdata()
+{
+	rt_kprintf("spi_getdata\n");
+}
 
 int main(void)
 {   /* put user application code here */
 
+	rt_kprintf("main 0\n");
     spi_init(0,2,0);  
-	io_init(RT_NULL);
-	
+//	io_init(RT_NULL);
+	rt_kprintf("main 1\n");
 	StartTimersInterrupt(1,0,1000,0,spi_getdata);
     return 0;
 }

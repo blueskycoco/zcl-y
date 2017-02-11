@@ -132,7 +132,7 @@ int main(void)
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
-//	mnt_init();
+	mnt_init();
     return 0;
 }
 #ifdef FINSH_USING_MSH
