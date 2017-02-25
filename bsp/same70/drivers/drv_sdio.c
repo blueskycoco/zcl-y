@@ -66,11 +66,16 @@ static rt_err_t sdcard_flash_control(rt_device_t dev, rt_uint8_t cmd, void *args
 
         geometry->bytes_per_sector = 512;
         geometry->block_size = SD_GetBlockSize(&sdDrv[DRV_MMC]);
-        if (SD_GetCardType(&sdDrv[DRV_MMC]) == CARD_TYPE_bmHC)
-            geometry->sector_count = (SD_GetTotalSizeKB(&sdDrv[DRV_MMC]) + 1)  * 1024;
+        if (SD_GetCardType(&sdDrv[DRV_MMC]) == CARD_SDHC)
+        {
+        	//rt_kprintf("card is CARD_SDHC\n");
+        	geometry->sector_count = SD_GetNumberBlocks(&sdDrv[DRV_MMC]);
+        }
         else
-            geometry->sector_count = SD_GetNumberBlocks(&sdDrv[DRV_MMC]);
-    }
+        	geometry->sector_count = (SD_GetTotalSizeKB(&sdDrv[DRV_MMC])*1024)/SD_GetBlockSize(&sdDrv[DRV_MMC]);
+		//rt_kprintf("bytes_per_sector %d\nblock_size %d\nsector_count %d\n",
+			//geometry->bytes_per_sector,geometry->block_size,geometry->sector_count);
+	}
 	return RT_EOK;
 }
 
@@ -93,6 +98,8 @@ static rt_size_t sdcard_flash_read(rt_device_t dev,
 		addr = pos;        
 		len  = size;    
 	}    
+	//if (SD_GetCardType(&sdDrv[DRV_MMC]) == CARD_SDHC)
+	//	addr <<= 9;
 	result = MED_Read(&medias[DRV_MMC], addr, (void*)buffer, len, NULL, NULL);    
 	if( result != MED_STATUS_SUCCESS )
 	{        
@@ -126,6 +133,9 @@ static rt_size_t sdcard_flash_write(rt_device_t dev,
 		addr = pos;        
 		len  = size;    
 	}    
+	
+	//if (SD_GetCardType(&sdDrv[DRV_MMC]) == CARD_SDHC)
+	//	addr <<= 9;
 	result = MED_Write(&medias[DRV_MMC], addr, (void*)tmp, len, NULL, NULL);    
 	if( result != MED_STATUS_SUCCESS )    
 	{        

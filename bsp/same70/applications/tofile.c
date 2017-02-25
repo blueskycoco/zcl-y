@@ -18,10 +18,14 @@ static enum rym_code _rym_bg(
         rt_uint8_t *buf,
         rt_size_t len)
 {
+	char full_path[256] = {0};
     struct custom_ctx *cctx = (struct custom_ctx*)ctx;
-    cctx->fpath[0] = '/';
+   	getcwd(full_path, 256);
+    if (full_path[rt_strlen(full_path) - 1]  != '/')
+         strcat(full_path, "/");
+	strcpy(cctx->fpath,full_path);
     /* the buf should be the file name */
-    strcpy(&(cctx->fpath[1]), (const char*)buf);
+    strcat(cctx->fpath, (const char*)buf);
     cctx->fd = open(cctx->fpath, O_CREAT | O_WRONLY | O_TRUNC, 0);
     if (cctx->fd < 0)
     {

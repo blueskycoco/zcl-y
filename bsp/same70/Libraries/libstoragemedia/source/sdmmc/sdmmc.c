@@ -313,6 +313,7 @@ static uint8_t _HwGetHsMode(sSdCard *pSd)
 	sSdHalFunctions *pHal = pSd->pHalf;
 	void *pDrv = pSd->pDrv;
 	uint32_t hsMode = 0;
+	return hsMode;
 	pHal->fIOCtrl(pDrv, SDMMC_IOCTL_GET_HSMODE, (uint32_t)&hsMode);
 	return hsMode;
 }
