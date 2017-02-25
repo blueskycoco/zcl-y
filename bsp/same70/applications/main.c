@@ -135,6 +135,18 @@ int main(void)
 	mnt_init();
     return 0;
 }
+struct rt_data_queue *data_queue = RT_NULL;
+void get_data_queue(struct rt_data_queue *queue)
+{
+	queue = data_queue;
+}
+RTM_EXPORT(get_data_queue);
+void set_data_queue(struct rt_data_queue *queue)
+{
+	data_queue = queue;
+}
+RTM_EXPORT(set_data_queue);
+
 #ifdef FINSH_USING_MSH
 #include <finsh.h>
 
