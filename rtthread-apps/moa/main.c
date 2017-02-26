@@ -26,11 +26,12 @@
 #include <rtthread.h>
 #include <rtdevice.h>
 static struct rt_data_queue data_queue;
-
-void moa_rx()
+void moa_rx(void)
 {
 	const void *data_ptr;
     rt_size_t data_size;
+	rt_kprintf("moa_rx\n");
+	return;
 	while(1)
 	{
 		rt_data_queue_pop(&data_queue, &data_ptr, &data_size, RT_WAITING_FOREVER);	
@@ -38,37 +39,37 @@ void moa_rx()
 		rt_free((void *)data_ptr);
 	}
 }
-void mob_tx()
+void mob_tx(void)
 {
 	rt_err_t result;
 	rt_uint8_t *data = RT_NULL;
-	int i;
+	int i = 0;
 
+	while (1) {
 	data = (rt_uint8_t *)rt_calloc(20, sizeof(rt_uint8_t));	
-	for (i = 0; i< 20; i++)
-		data[i] = 0x30 + i;
-
+	//for (i = 0; i< 20; i++)
+	//	data[i] = 0x30 + i;
+	rt_memset(data, 0x30+i, 19);
 	result = rt_data_queue_push(&data_queue, data, 20, RT_WAITING_FOREVER);
-	if (result == RT_EOK)
+	if (result != RT_EOK)
 	{
-		rt_kprintf("mob push data ok\n");
+		rt_kprintf("mob push data failed\n");
+	}
+	i++;
+	if (i > 10)
+		i = 0;
+	rt_thread_delay(RT_TICK_PER_SECOND);
 	}
 }
 
+
 int main(void)
 {
-	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);
-	
+	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 	rt_thread_startup(rt_thread_create("thr_moa",
 			moa_rx, RT_NULL,1024, 20, 10));
-	//rt_thread_delay(10);
 	//rt_thread_startup(rt_thread_create("thr_mob",
-	//		mob_tx, RT_NULL,1024, 20, 10));
-	while (1)
-	{
-		mob_tx();
-		rt_thread_delay(100);
-	}
+	//		mob_tx, RT_NULL,2048, 20, 10));
 	return 0;
 }
 

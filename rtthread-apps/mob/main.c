@@ -25,36 +25,28 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+static struct rt_data_queue data_queueb;
 
 void mob_tx()
 {
-	struct rt_data_queue data_queue;
 	rt_err_t result;
-	rt_uint8_t data[20] = {0x31};
+	rt_uint8_t *data = RT_NULL;
 	int i;
 
-	rt_kprintf("mob 0\n");
-#if 1
+	data = (rt_uint8_t *)rt_calloc(20, sizeof(rt_uint8_t));	
 	for (i = 0; i< 20; i++)
 		data[i] = 0x30 + i;
 
-	rt_kprintf("mob 1\n");
-	//get_data_queue(&data_queue);
-	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);
-	rt_kprintf("mob 2\n");
-	result = rt_data_queue_push(&data_queue, data, 20, RT_WAITING_FOREVER);
-	rt_kprintf("mob 3\n");
+	result = rt_data_queue_push(&data_queueb, data, 20, RT_WAITING_FOREVER);
 	if (result == RT_EOK)
 	{
 		rt_kprintf("mob push data ok\n");
 	}
-#endif
 }
+
 int main(void)
 {
-	//rt_thread_startup(rt_thread_create("thr_mob",
-	//		mob_tx, RT_NULL,1024, 20, 10));		
-	//rt_kprintf("mob 0\n");
+	get_data_queue(&data_queueb);
 	mob_tx();
 	return 0;
 }
