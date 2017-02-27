@@ -168,11 +168,11 @@ int main(void)
 #endif
 	mnt_init();
 
-	//rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
-	//rt_thread_startup(rt_thread_create("thr_moa",
-	//		moa_rx, RT_NULL,1024, 20, 10));
-	//rt_thread_startup(rt_thread_create("thr_mob",
-	//		mob_tx, RT_NULL,1024, 20, 10));
+//	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
+//	rt_thread_startup(rt_thread_create("thr_moa",
+//			moa_rx, RT_NULL,1024, 20, 10));
+//	rt_thread_startup(rt_thread_create("thr_mob",
+//			mob_tx, RT_NULL,1024, 20, 10));
 
     return 0;
 }
