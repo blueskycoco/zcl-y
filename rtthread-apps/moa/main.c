@@ -25,6 +25,9 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include "board.h"
+struct _CalBaseProtocol {	float jgx;	float jgy;	float jgz;	float jax;	float jay;	float jaz;	float tempGx;	float tempGy;	float tempGz;	float speed_5004;	float hight_5611;};struct _CalSendProtocol{	unsigned char 	head1 ;   // A5	unsigned char 	head2 ;   //5A	unsigned char 	head3 ; //  40	unsigned char 	head4 ;		// 40	float jgx;	float jgy;	float jgz;	float jax;	float jay;	float jaz;	float tempGx;	float tempGy;	float tempGz;	float speed_5004;	float hight_5611;	unsigned char 	crc1;	unsigned char 	crc2;	unsigned char 	end;	 //AA};struct _CalBaseProtocol IMU_Data;struct _CalSendProtocol IMU_SData;
+
 static struct rt_data_queue data_queue;
 void moa_rx(void)
 {

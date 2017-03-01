@@ -48,7 +48,7 @@ static rt_err_t rx_ind(rt_device_t dev, rt_size_t size)
     rt_sem_release(&rx_sem);
     return RT_EOK;
 }
-static void usart1_rx(void* parameter)
+static void usartd1_rx(void* parameter)
 {
 	int len = 0;
 	rt_uint8_t buf[256] = {0};
@@ -146,9 +146,10 @@ int main(void)
 		rt_thread_startup(rt_thread_create("usart1_rx",
 			usart1_rx, RT_NULL,2048, 20, 10));
 	}
+#else
+	rt_thread_startup(rt_thread_create("usartd1_rx",
+		usartd1_rx, RT_NULL,2048, 20, 10));
 #endif
-	rt_thread_startup(rt_thread_create("usart1_rx",
-		usart1_rx, RT_NULL,2048, 20, 10));
 #ifdef RT_USING_DFS
 	rt_hw_spi_init();	
     rt_sfud_flash_probe("flash", "spi10");	
