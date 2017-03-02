@@ -25,16 +25,18 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#if 0
 #include "board.h"
-struct _CalBaseProtocol {	float jgx;	float jgy;	float jgz;	float jax;	float jay;	float jaz;	float tempGx;	float tempGy;	float tempGz;	float speed_5004;	float hight_5611;};struct _CalSendProtocol{	unsigned char 	head1 ;   // A5	unsigned char 	head2 ;   //5A	unsigned char 	head3 ; //  40	unsigned char 	head4 ;		// 40	float jgx;	float jgy;	float jgz;	float jax;	float jay;	float jaz;	float tempGx;	float tempGy;	float tempGz;	float speed_5004;	float hight_5611;	unsigned char 	crc1;	unsigned char 	crc2;	unsigned char 	end;	 //AA};struct _CalBaseProtocol IMU_Data;struct _CalSendProtocol IMU_SData;
-
+struct _CalBaseProtocol 
+{	float jgx;	float jgy;	float jgz;	float jax;	float jay;	float jaz;	float tempGx;	float tempGy;	float tempGz;	float speed_5004;	float hight_5611;};
+struct _CalBaseProtocol a,b;
+#endif
 static struct rt_data_queue data_queue;
 void moa_rx(void)
 {
 	const void *data_ptr;
     rt_size_t data_size;
 	rt_kprintf("moa_rx\n");
-	return;
 	while(1)
 	{
 		rt_data_queue_pop(&data_queue, &data_ptr, &data_size, RT_WAITING_FOREVER);	
@@ -56,6 +58,7 @@ void mob_tx(void)
 	result = rt_data_queue_push(&data_queue, data, 20, RT_WAITING_FOREVER);
 	if (result != RT_EOK)
 	{
+		rt_free(data);
 		rt_kprintf("mob push data failed\n");
 	}
 	i++;
@@ -71,8 +74,8 @@ int main(void)
 	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 	rt_thread_startup(rt_thread_create("thr_moa",
 			moa_rx, RT_NULL,1024, 20, 10));
-	//rt_thread_startup(rt_thread_create("thr_mob",
-	//		mob_tx, RT_NULL,2048, 20, 10));
+	rt_thread_startup(rt_thread_create("thr_mob",
+			mob_tx, RT_NULL,2048, 20, 10));
 	return 0;
 }
 
