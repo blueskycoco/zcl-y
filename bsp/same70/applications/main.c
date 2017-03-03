@@ -33,6 +33,7 @@
 #include <spi_flash_sfud.h>
 #include "drv_qspi.h"
 #include "drv_sdio.h"
+#include "drv_cpuusage.h"
 #endif
 #include <stdint.h>
 #include <stdio.h>
@@ -168,6 +169,7 @@ int main(void)
 	}
 #endif
 	mnt_init();
+	cpu_usage_init();
 
 //	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 //	rt_thread_startup(rt_thread_create("thr_moa",
@@ -193,4 +195,13 @@ int cmd_exec(int argc, char **argv)
 }
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_exec, __cmd_exec, exec a app module);
 #endif
+int cmd_cpu(int argc, char **argv)
+{
+	rt_uint8_t major,minor;
+    cpu_usage_get(&major, &minor);
+	rt_kprintf("CPU %d.%d%\n", major,minor);
+    return 0;
+}
+FINSH_FUNCTION_EXPORT_ALIAS(cmd_cpu, __cmd_cpu, get cpuusage);
+
 #endif
