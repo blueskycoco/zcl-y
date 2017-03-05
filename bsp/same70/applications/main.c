@@ -34,6 +34,7 @@
 #include "drv_qspi.h"
 #include "drv_sdio.h"
 #include "drv_cpuusage.h"
+#include "drv_eeprom.h"
 #endif
 #include <stdint.h>
 #include <stdio.h>
@@ -168,9 +169,23 @@ int main(void)
 		rt_kprintf("root file system failed %d!\n", rt_get_errno());
 	}
 #endif
-	mnt_init();
 	cpu_usage_init();
-
+	#if 1
+	eeprom_init();
+	rt_uint8_t data[8]={0};
+	for(int i=0;i<8;i++)
+		data[i]=i*7;
+	eeprom_write(0,data,8);
+	rt_thread_delay(1);
+	rt_memset(data,0,8);
+	if(eeprom_read(0,data,8))
+	{
+		for(int i=0;i<8;i++)
+			rt_kprintf("I2C %x\n", data[i]);
+	}
+	#endif
+	mnt_init();
+	//rt_kprintf("prees is %d \n", ms5611_read());
 //	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 //	rt_thread_startup(rt_thread_create("thr_moa",
 //			moa_rx, RT_NULL,1024, 20, 10));
