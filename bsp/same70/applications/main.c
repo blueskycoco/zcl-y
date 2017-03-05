@@ -186,6 +186,7 @@ int main(void)
 	#endif
 	rt_uint16_t calc[7]={0};
 	rt_uint32_t temp,press;
+	ms5611_reset();
 	if(ms5611_read(calc,&temp,&press))
 	rt_kprintf("prees info is \ncalc %x %x %x %x %x %x %x\ntemp %x\npress %x\n", 
 	calc[0],calc[1],calc[2],calc[3],calc[4],calc[5],calc[6],

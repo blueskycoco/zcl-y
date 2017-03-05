@@ -57,7 +57,23 @@ bool eeprom_read(int addr, uint8_t *data, uint8_t len)
 	return result;
 }
 RTM_EXPORT(eeprom_read);
- 
+bool ms5611_reset()
+{
+	bool result = false;
+	rt_uint8_t cmd;
+
+	cmd = MS561101BA_RESET;
+	result = !TWID_Write(&twid, MS561101BA_ADDR, 0, 0, &cmd, 1, 0);
+	if (!result)
+	{
+		rt_kprintf("reset ms5611 failed\n");
+	}
+	rt_thread_delay(10);
+
+	rt_mutex_release(&i2c_lock);
+	return result;
+}
+RTM_EXPORT(ms5611_reset);
 bool ms5611_read(uint16_t *calc, uint32_t *temp, uint32_t *press)
 {
 	bool result = false;
@@ -65,15 +81,6 @@ bool ms5611_read(uint16_t *calc, uint32_t *temp, uint32_t *press)
 	rt_uint8_t buf[2] = {0};
 	rt_mutex_take(&i2c_lock, RT_WAITING_FOREVER);
 	/*get calc*/
-	cmd = MS561101BA_RESET;
-	result = !TWID_Write(&twid, MS561101BA_ADDR, 0, 0, &cmd, 1, 0);
-	if (!result)
-	{
-		rt_kprintf("reset ms5611 failed\n");
-		rt_mutex_release(&i2c_lock);
-		return result;
-	}
-	rt_thread_delay(10);
 	for (int i=0; i <= MS561101BA_PROM_REG_COUNT; i++) 
 	{
 		result = !TWID_Read(&twid, MS561101BA_ADDR, MS561101BA_PROM_BASE_ADDR + (i * MS561101BA_PROM_REG_SIZE), 
