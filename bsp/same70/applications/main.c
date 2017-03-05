@@ -184,8 +184,13 @@ int main(void)
 			rt_kprintf("I2C %x\n", data[i]);
 	}
 	#endif
+	rt_uint16_t calc[7]={0};
+	rt_uint32_t temp,press;
+	if(ms5611_read(calc,&temp,&press))
+	rt_kprintf("prees info is \ncalc %x %x %x %x %x %x %x\ntemp %x\npress %x\n", 
+	calc[0],calc[1],calc[2],calc[3],calc[4],calc[5],calc[6],
+	temp,press);
 	mnt_init();
-	//rt_kprintf("prees is %d \n", ms5611_read());
 //	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 //	rt_thread_startup(rt_thread_create("thr_moa",
 //			moa_rx, RT_NULL,1024, 20, 10));
