@@ -69,7 +69,7 @@ void mob_tx(void)
 }
 
 
-int main(void)
+int main(int argc, void *argv[])
 {
 	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 	rt_thread_startup(rt_thread_create("thr_moa",
