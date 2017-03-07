@@ -191,7 +191,7 @@ int main(void)
 	rt_kprintf("prees info is \ncalc %x %x %x %x %x %x %x\ntemp %x\npress %x\n", 
 	calc[0],calc[1],calc[2],calc[3],calc[4],calc[5],calc[6],
 	temp,press);
-	mnt_init();
+	//mnt_init();
 //	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 //	rt_thread_startup(rt_thread_create("thr_moa",
 //			moa_rx, RT_NULL,1024, 20, 10));

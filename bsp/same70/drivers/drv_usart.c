@@ -133,6 +133,8 @@ static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_
 				(US_MR_USART_MODE_NORMAL | US_MR_PAR_NO | US_MR_USCLKS_MCK
 			   | data_width | stop_bits);
 		uart->UsartHandle->US_CR = US_CR_RXEN | US_CR_TXEN;
+		UART_ENABLE_IRQ(uart->irq);
+		USART_EnableIt(uart->UsartHandle, US_IER_RXRDY);
 	}
 	else
 	{
@@ -143,6 +145,8 @@ static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_
 				(UART_MR_CHMODE(UART_MR_CHMODE_NORMAL) | UART_MR_PAR(UART_MR_PAR_NO) 
 				| UART_MR_BRSRCCK_PERIPH_CLK);
 		uart->UartHandle->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
+		UART_ENABLE_IRQ(uart->irq);
+		UART_EnableIt(uart->UartHandle, US_IER_RXRDY);
 	}
     return RT_EOK;
 }
