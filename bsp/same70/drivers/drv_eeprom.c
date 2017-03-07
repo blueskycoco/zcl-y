@@ -61,6 +61,7 @@ bool ms5611_reset()
 {
 	bool result = false;
 	rt_uint8_t cmd;
+	rt_mutex_take(&i2c_lock, RT_WAITING_FOREVER);
 
 	cmd = MS561101BA_RESET;
 	result = !TWID_Write(&twid, MS561101BA_ADDR, 0, 0, &cmd, 1, 0);

@@ -31,8 +31,8 @@
 //  <i>Default: 1
 #define STM32_USE_SDIO          0
 
-extern int _ebss;
-#define HEAP_BEGIN    (&_ebss)
+extern int __bss_end;
+#define HEAP_BEGIN    (&__bss_end)
 
 // <o> Internal SRAM memory size[Kbytes] <8-64>
 //  <i>Default: 64

@@ -148,9 +148,6 @@ int main(void)
 		rt_thread_startup(rt_thread_create("usart1_rx",
 			usart1_rx, RT_NULL,2048, 20, 10));
 	}
-#else
-	rt_thread_startup(rt_thread_create("usartd1_rx",
-		usartd1_rx, RT_NULL,2048, 20, 10));
 #endif
 #ifdef RT_USING_DFS
 	rt_hw_spi_init();	
