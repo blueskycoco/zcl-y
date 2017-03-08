@@ -35,12 +35,14 @@ bool spi_init(int SPI_ID, uint8_t cs, uint8_t type)
 		cs,			
 		SPI_CSR_NCPHA |
 		SPI_CSR_BITS_16_BIT |
-		SPI_DLYBCT( 1000, BOARD_MCK ) |			
-		SPI_DLYBS(1000, BOARD_MCK) |			
+		SPI_DLYBCT( 10, BOARD_MCK ) |			
+		SPI_DLYBS(10, BOARD_MCK) |			
 		SPI_SCBR( clk, BOARD_MCK) );
 	SPI_Enable(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_init);
+
 bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)	
 {	
 	Spi *spi_base;
@@ -54,9 +56,13 @@ bool spi_write8bits(int SPI_ID, uint8_t data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_8_BIT;
 	SPI_Write(spi_base, cs , (uint16_t)data);
 	return true;
 }
+RTM_EXPORT(spi_write8bits);
+
 bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 {
 	Spi *spi_base;
@@ -70,10 +76,14 @@ bool spi_read8bits(int SPI_ID, uint8_t *data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_8_BIT;
 	SPI_Write(spi_base, cs , 0);
 	*data = (uint8_t) SPI_Read(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_read8bits);
 
 bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 {
@@ -88,9 +98,13 @@ bool spi_write16bits(int SPI_ID, uint16_t data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_16_BIT;
 	SPI_Write(spi_base, cs , data);
 	return true;
 }
+RTM_EXPORT(spi_write16bits);
 
 bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 {
@@ -105,10 +119,15 @@ bool spi_read16bits(int SPI_ID, uint16_t *data, uint8_t cs)
 		spi_base = SPI0;
 	else
 		spi_base = SPI1;
+	
+	spi_base->SPI_CSR[cs] &= ~SPI_CSR_BITS_Msk;
+	spi_base->SPI_CSR[cs] |= SPI_CSR_BITS_16_BIT;
 	SPI_Write(spi_base, cs , 0);
 	*data = (uint16_t) SPI_Read(spi_base);
 	return true;
 }
+RTM_EXPORT(spi_read16bits);
+
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 static void spi_init_t(int SPI_ID, uint8_t cs, uint8_t type)

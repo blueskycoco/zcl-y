@@ -38,10 +38,10 @@ static void CPU_CACHE_Enable(void)
     __DSB();
 
     /* Enable I-Cache */
-    SCB_EnableICache();
+    //SCB_EnableICache();
 
     /* Enable D-Cache */
-    SCB_EnableDCache();
+    //SCB_EnableDCache();
 }
 
 /**

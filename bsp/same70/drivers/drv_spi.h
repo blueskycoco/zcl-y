@@ -1,5 +1,5 @@
-#ifndef __DRV_TIMER_H
-#define __DRV_TIMER_H
+#ifndef __DRV_SPI_H
+#define __DRV_SPI_H
 
 #include "rt_board.h"
 #define SPI_DEVICE_SAME70Q21_AD 0

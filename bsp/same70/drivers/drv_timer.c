@@ -112,6 +112,8 @@ ErrorID GeneratePWMByTimers (int TimerID,int Timer_CHID,int LineID,int Freq,int 
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
     return Function_OK;
 }
+RTM_EXPORT(GeneratePWMByTimers);
+
 ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq , int PulseWidth)
 {
 	Tc *tc_base;
@@ -170,6 +172,8 @@ ErrorID ChangePulseWidthByTimers(int TimerID,int Timer_CHID,int LineID,int Freq 
 		tc_base->TC_CHANNEL[Timer_CHID].TC_RC);
 	return Function_OK;
 }
+RTM_EXPORT(ChangePulseWidthByTimers);
+
 ErrorID GeneratePWMByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWidth)
 {	
 	Pwm *pwm_base;
@@ -256,6 +260,7 @@ ErrorID GeneratePWMByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWid
 
 	return Function_OK;
 }
+RTM_EXPORT(GeneratePWMByPWM);
 
 ErrorID ChangePulseWidthByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int PulseWidth)
 {	
@@ -308,17 +313,22 @@ ErrorID ChangePulseWidthByPWM(int PWMID,int PWM_CHID,int LineID,int Freq,int Pul
 
 	return Function_OK;
 }
+RTM_EXPORT(ChangePulseWidthByPWM);
+
 void PWM_enable(void)
 {
 	PIO_Configure(&pPwmCtl[0], 1);
 	PIO_Clear(&pPwmCtl[0]);
 }
+RTM_EXPORT(PWM_enable);
 
 void PWM_disable(void)
 {
 	PIO_Configure(&pPwmCtl[0], 1);
 	PIO_Set(&pPwmCtl[0]);
 }
+RTM_EXPORT(PWM_disable);
+
 void TC1_Handler(void)
 {
 	uint32_t status;	
@@ -392,7 +402,7 @@ void TC11_Handler(void)
 		tc_callback();
 }
 
-bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callback_t callback_function)
+bool StartTimersInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callback_t callback_function)
 {
 	Tc *tc_base;
 	uint32_t rc;
@@ -507,6 +517,8 @@ bool StartTimesInterrupt(int TimerID,int Timer_CHID,int Freq,int priority,callba
     return true;
 
 }
+RTM_EXPORT(StartTimersInterrupt);
+
 bool StopTimersInterrupt(int TimerID,int Timer_CHID)
 {
 	Tc *tc_base;
@@ -592,6 +604,7 @@ bool StopTimersInterrupt(int TimerID,int Timer_CHID)
 		tc_base->TC_CHANNEL[Timer_CHID].TC_IMR);
 	return true;
 }
+RTM_EXPORT(StopTimersInterrupt);
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
@@ -674,7 +687,7 @@ void tc_cb()
 }
 static void timer_start(int TimerID,int Timer_CHID,int Freq,int priority)
 {
-	if(StartTimesInterrupt(TimerID,Timer_CHID,Freq,priority,(callback_t) tc_cb))
+	if(StartTimersInterrupt(TimerID,Timer_CHID,Freq,priority,(callback_t) tc_cb))
 		rt_kprintf("StartTimesInterrupt ok\n");
 	else
 		rt_kprintf("StartTimesInterrupt failed\n");

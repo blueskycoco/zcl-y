@@ -19,7 +19,7 @@
 // <integer name="IDLE_THREAD_STACK_SIZE" description="The stack size of idle thread" default="512" />
 #define IDLE_THREAD_STACK_SIZE	512
 // <bool name="RT_USING_MODULE" description="Using Application Module" default="true" />
-//#define RT_USING_MODULE
+#define RT_USING_MODULE
 // <section name="RT_DEBUG" description="Kernel Debug Configuration" default="true" >
 #define RT_DEBUG
 // <bool name="RT_THREAD_DEBUG" description="Thread debug enable" default="false" />
@@ -73,7 +73,7 @@
 // <bool name="RT_USING_SERIAL" description="Using Serial Device Driver Framework" default="true" />
 #define RT_USING_SERIAL
 // <integer name="RT_UART_RX_BUFFER_SIZE" description="The buffer size for UART reception" default="64" />
-#define RT_SERIAL_RB_BUFSZ    64
+#define RT_SERIAL_RB_BUFSZ    128//64
 // <bool name="RT_USING_SPI" description="Using SPI Device Driver Framework" default="true" />
 #define RT_USING_SPI
 // <bool name="RT_USING_I2C" description="Using I2C Device Driver Framework" default="true" />
@@ -87,7 +87,7 @@
 // <integer name="RT_CONSOLEBUF_SIZE" description="The buffer size for console output" default="128" />
 #define RT_CONSOLEBUF_SIZE	128
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart" />
-#define RT_CONSOLE_DEVICE_NAME	"usart1"
+#define RT_CONSOLE_DEVICE_NAME	"usart0"
 // </section>
 
 // <bool name="RT_USING_COMPONENTS_INIT" description="Using RT-Thread components initialization" default="true" />
@@ -114,7 +114,7 @@
 // </section>
 
 // <section name="RT_USING_DFS" description="Device file system" default="true" >
-//#define RT_USING_DFS
+#define RT_USING_DFS
 // <bool name="DFS_USING_WORKDIR" description="Using working directory" default="true" />
 #define DFS_USING_WORKDIR
 // <integer name="DFS_FILESYSTEM_TYPES_MAX" description="The maximal number of the supported file system type" default="4" />
@@ -161,5 +161,10 @@
 
 #define RT_USING_COMPONENTS_INIT
 #define RT_USING_USER_MAIN
-
+#define RT_USING_SFUD
+#define RT_SFUD_USING_SFDP
+#define RT_USING_RYM
+#define RT_USING_CPLUSPLUS
+//#define RT_SFUD_USING_FLASH_INFO_TABLE
+//#define RT_DEBUG_SFUD 1
 #endif

@@ -83,7 +83,6 @@ static void dsram_read_t(int addr, int len)
 	else		
 		rt_kprintf("dsram_read failed\n");
 }
-
 static void dsram_write_t(int addr, int begin, int len)	
 {
 	int i;
@@ -247,12 +246,10 @@ uint32_t dual_test2(void)
 	rt_kprintf(" Test for dual sram SUCCESS... \n\r");
 		return ret;
 	}
-
 FINSH_FUNCTION_EXPORT(dsram_init_t, test dsram_init);
 FINSH_FUNCTION_EXPORT(dsram_write_t, test dsram_write);
 FINSH_FUNCTION_EXPORT(dsram_read_t, test dsram_read);
 FINSH_FUNCTION_EXPORT(dual_test, test dsram);
 FINSH_FUNCTION_EXPORT(dual_test2, test dsram2);
-
 #endif
 
