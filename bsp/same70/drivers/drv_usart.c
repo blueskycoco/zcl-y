@@ -142,7 +142,7 @@ static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_
 		uart->UartHandle->UART_IDR = 0xFFFFFFFF;
 		uart->UartHandle->UART_BRGR = (BOARD_MCK / cfg->baud_rate) / 16;
 		uart->UartHandle->UART_MR =
-				(UART_MR_CHMODE(UART_MR_CHMODE_NORMAL) | UART_MR_PAR(UART_MR_PAR_NO) 
+				(UART_MR_CHMODE_NORMAL | UART_MR_PAR_NO 
 				| UART_MR_BRSRCCK_PERIPH_CLK);
 		uart->UartHandle->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
 		UART_ENABLE_IRQ(uart->irq);
