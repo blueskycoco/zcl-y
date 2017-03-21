@@ -97,14 +97,19 @@
 
 #define UART4_PINS      {PIN_UART4_TXD, PIN_UART4_RXD}
 #endif
-
+extern sXdmad dmaDrv;
 struct same70_uart
 {
     Usart *UsartHandle;
 	Uart *UartHandle;
     IRQn_Type irq;
 	bool type_usart;
+	UsartChannel UsartTx;
+	UsartDma Usartd;
+	uint32_t mode;
+	uint32_t baud;
 };
+rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, rt_size_t size, int direction);
 
 static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_configure *cfg)
 {
@@ -148,6 +153,9 @@ static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_
 		UART_ENABLE_IRQ(uart->irq);
 		UART_EnableIt(uart->UartHandle, US_IER_RXRDY);
 	}
+	uart->baud = cfg->baud_rate;
+	uart->mode = (US_MR_USART_MODE_NORMAL | US_MR_PAR_NO | US_MR_USCLKS_MCK
+			   | data_width | stop_bits);
     return RT_EOK;
 }
 
@@ -237,6 +245,7 @@ static const struct rt_uart_ops same70_uart_ops =
     same70_control,
     same70_putc,
     same70_getc,
+    same70_dma_transmit,
 };
 
 #if defined(RT_USING_USART0)
@@ -386,6 +395,43 @@ void UART4_Handler(void)
     rt_interrupt_leave();
 }
 #endif 
+static void same70_USARTD_Tx_Cb(uint32_t channel, struct same70_uart *pArg)
+{
+       UsartChannel *pUsartdCh = pArg->Usartd.pTxChannel;
+
+       if (channel != pUsartdCh->ChNum)
+               return;
+
+       /* Release the DMA channels */
+       XDMAD_FreeChannel(pArg->Usartd.pXdmad, pUsartdCh->ChNum);
+
+       pUsartdCh->dmaProgress = 1;
+       USARTD_DisableTxChannels(&(pArg->Usartd), &(pArg->UsartTx));
+       rt_hw_serial_isr(&serial_usart1, RT_SERIAL_EVENT_TX_DMADONE);
+}
+rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, rt_size_t size, int direction)
+{
+	struct same70_uart *uart;
+
+	RT_ASSERT(serial != RT_NULL);
+	uart = (struct same70_uart *)serial->parent.user_data;
+	if (direction == RT_SERIAL_DMA_TX)
+	{
+	       rt_memset(&(uart->UsartTx), 0, sizeof(UsartChannel));
+	       uart->UsartTx.BuffSize = size;
+	       uart->UsartTx.pBuff = buf;
+	       uart->UsartTx.dmaProgress = 1;
+	       uart->UsartTx.dmaProgrammingMode = XDMAD_SINGLE;
+	       uart->Usartd.pXdmad = &dmaDrv;
+	       uart->Usartd.pTxChannel = &(uart->UsartTx);
+	       uart->Usartd.pTxChannel->callback = (UsartdCallback)same70_USARTD_Tx_Cb;
+	       uart->Usartd.pTxChannel->pArgument= uart;
+	       USARTD_Configure(&(uart->Usartd), ID_USART1, uart->mode, uart->baud, BOARD_MCK);
+	       USARTD_EnableTxChannels(&(uart->Usartd), &(uart->UsartTx));
+	       USARTD_SendData(&(uart->Usartd));
+	}
+	return size;
+}
 
 int same70_hw_usart_init(void)
 {
@@ -421,7 +467,7 @@ int same70_hw_usart_init(void)
 
 	/* register USART1 device */
 	rt_hw_serial_register(&serial_usart1, "usart1",
-						  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+						  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX| RT_DEVICE_FLAG_DMA_TX,
 						  uart);
 #endif 
 #ifdef RT_USING_UART0
