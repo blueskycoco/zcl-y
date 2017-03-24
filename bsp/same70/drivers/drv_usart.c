@@ -105,9 +105,15 @@ struct same70_uart
     IRQn_Type irq;
 	bool type_usart;
 	UsartChannel UsartTx;
+	UsartChannel UsartRx;
 	UsartDma Usartd;
+	UartChannel UartTx;
+	UartChannel UartRx;
+	UartDma Uartd;
 	uint32_t mode;
 	uint32_t baud;
+	struct rt_serial_device *serial_device;
+	int id;
 };
 rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, rt_size_t size, int direction);
 
@@ -115,47 +121,65 @@ static rt_err_t same70_configure(struct rt_serial_device *serial, struct serial_
 {
     struct same70_uart *uart;
 	unsigned char data_width = 0;
-	unsigned char stop_bits = 0;
-	
+	unsigned short stop_bits = 0;
+	unsigned short parity_bits = US_MR_PAR_NO;
     RT_ASSERT(serial != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
 
     uart = (struct same70_uart *)serial->parent.user_data;
-	if (cfg->data_bits == DATA_BITS_8)
-		data_width= US_MR_CHRL_8_BIT;
 
-	if (cfg->stop_bits == STOP_BITS_1)
-		stop_bits = US_MR_NBSTOP_1_BIT;
-		
+	
 	if (uart->type_usart)
 	{
+		if (cfg->data_bits == DATA_BITS_8)
+			data_width= US_MR_CHRL_8_BIT;
+		else if (cfg->data_bits == DATA_BITS_7)
+			data_width= US_MR_CHRL_7_BIT;
+		else if (cfg->data_bits == DATA_BITS_6)
+			data_width= US_MR_CHRL_6_BIT;
+		else if (cfg->data_bits == DATA_BITS_5)
+			data_width= US_MR_CHRL_5_BIT;
+		
+		if (cfg->stop_bits == STOP_BITS_1)
+			stop_bits = US_MR_NBSTOP_1_BIT;
+		else if (cfg->stop_bits == STOP_BITS_2)
+			stop_bits = US_MR_NBSTOP_2_BIT;
+		else if (cfg->stop_bits == STOP_BITS_3)
+			stop_bits = US_MR_NBSTOP_1_5_BIT;
+		
+		if (cfg->parity == PARITY_ODD)
+			parity_bits = US_MR_PAR_ODD;
+		else if (cfg->parity == PARITY_EVEN)
+			parity_bits = US_MR_PAR_EVEN;
 		MATRIX->MATRIX_WPMR  = MATRIX_WPMR_WPKEY_PASSWD;
 		MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
 		uart->UsartHandle->US_CR = US_CR_RSTRX | US_CR_RSTTX | US_CR_RSTSTA;
 		uart->UsartHandle->US_IDR = 0xFFFFFFFF;
 		uart->UsartHandle->US_BRGR = (BOARD_MCK / cfg->baud_rate) / 16;
 		uart->UsartHandle->US_MR =
-				(US_MR_USART_MODE_NORMAL | US_MR_PAR_NO | US_MR_USCLKS_MCK
+				(US_MR_USART_MODE_NORMAL | parity_bits | US_MR_USCLKS_MCK
 			   | data_width | stop_bits);
 		uart->UsartHandle->US_CR = US_CR_RXEN | US_CR_TXEN;
-		UART_ENABLE_IRQ(uart->irq);
-		USART_EnableIt(uart->UsartHandle, US_IER_RXRDY);
+		uart->mode = (US_MR_USART_MODE_NORMAL | parity_bits | US_MR_USCLKS_MCK
+			   | data_width | stop_bits);
 	}
 	else
 	{
+		if (cfg->parity == PARITY_ODD)
+			parity_bits = UART_MR_PAR_ODD;
+		else if (cfg->parity == PARITY_EVEN)
+			parity_bits = UART_MR_PAR_EVEN;
 		uart->UartHandle->UART_CR = UART_CR_RSTRX | UART_CR_RSTTX | UART_CR_RSTSTA;
 		uart->UartHandle->UART_IDR = 0xFFFFFFFF;
 		uart->UartHandle->UART_BRGR = (BOARD_MCK / cfg->baud_rate) / 16;
 		uart->UartHandle->UART_MR =
-				(UART_MR_CHMODE_NORMAL | UART_MR_PAR_NO 
+				(UART_MR_CHMODE_NORMAL | parity_bits 
 				| UART_MR_BRSRCCK_PERIPH_CLK);
 		uart->UartHandle->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
-		UART_ENABLE_IRQ(uart->irq);
-		UART_EnableIt(uart->UartHandle, US_IER_RXRDY);
+		uart->mode = (UART_MR_CHMODE_NORMAL | parity_bits 
+				| UART_MR_BRSRCCK_PERIPH_CLK);
 	}
 	uart->baud = cfg->baud_rate;
-	uart->mode = (US_MR_USART_MODE_NORMAL | US_MR_PAR_NO | US_MR_USCLKS_MCK
-			   | data_width | stop_bits);
     return RT_EOK;
 }
 
@@ -402,12 +426,44 @@ static void same70_USARTD_Tx_Cb(uint32_t channel, struct same70_uart *pArg)
        if (channel != pUsartdCh->ChNum)
                return;
 
-       /* Release the DMA channels */
-       XDMAD_FreeChannel(pArg->Usartd.pXdmad, pUsartdCh->ChNum);
-
-       pUsartdCh->dmaProgress = 1;
        USARTD_DisableTxChannels(&(pArg->Usartd), &(pArg->UsartTx));
-       rt_hw_serial_isr(&serial_usart1, RT_SERIAL_EVENT_TX_DMADONE);
+       rt_hw_serial_isr(pArg->serial_device, RT_SERIAL_EVENT_TX_DMADONE);
+}
+static void same70_USARTD_Rx_Cb(uint32_t channel, struct same70_uart *pArg)
+{
+
+       UsartChannel *pUsartdCh = pArg->Usartd.pRxChannel;
+
+       if (channel != pUsartdCh->ChNum)
+               return;
+
+       /* Release the DMA channels */
+       USARTD_DisableRxChannels(&(pArg->Usartd), &(pArg->UsartRx));
+       SCB_InvalidateDCache_by_Addr((uint32_t *)pUsartdCh->pBuff, pUsartdCh->BuffSize);
+       rt_hw_serial_isr(pArg->serial_device, (pUsartdCh->BuffSize << 8)|RT_SERIAL_EVENT_RX_DMADONE);
+}
+static void same70_UARTD_Tx_Cb(uint32_t channel, struct same70_uart *pArg)
+{
+       UartChannel *pUartdCh = pArg->Uartd.pTxChannel;
+
+       if (channel != pUartdCh->ChNum)
+               return;
+
+       UARTD_DisableTxChannels(&(pArg->Uartd), &(pArg->UartTx));
+       rt_hw_serial_isr(pArg->serial_device, RT_SERIAL_EVENT_TX_DMADONE);
+}
+static void same70_UARTD_Rx_Cb(uint32_t channel, struct same70_uart *pArg)
+{
+
+       UartChannel *pUartdCh = pArg->Uartd.pRxChannel;
+
+       if (channel != pUartdCh->ChNum)
+               return;
+
+       /* Release the DMA channels */
+       UARTD_DisableRxChannels(&(pArg->Uartd), &(pArg->UartRx));
+       SCB_InvalidateDCache_by_Addr((uint32_t *)pUartdCh->pBuff, pUartdCh->BuffSize);
+       rt_hw_serial_isr(pArg->serial_device, (pUartdCh->BuffSize << 8)|RT_SERIAL_EVENT_RX_DMADONE);
 }
 rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, rt_size_t size, int direction)
 {
@@ -415,20 +471,69 @@ rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, 
 
 	RT_ASSERT(serial != RT_NULL);
 	uart = (struct same70_uart *)serial->parent.user_data;
-	if (direction == RT_SERIAL_DMA_TX)
+	if (uart->type_usart) 
 	{
-	       rt_memset(&(uart->UsartTx), 0, sizeof(UsartChannel));
-	       uart->UsartTx.BuffSize = size;
-	       uart->UsartTx.pBuff = buf;
-	       uart->UsartTx.dmaProgress = 1;
-	       uart->UsartTx.dmaProgrammingMode = XDMAD_SINGLE;
-	       uart->Usartd.pXdmad = &dmaDrv;
-	       uart->Usartd.pTxChannel = &(uart->UsartTx);
-	       uart->Usartd.pTxChannel->callback = (UsartdCallback)same70_USARTD_Tx_Cb;
-	       uart->Usartd.pTxChannel->pArgument= uart;
-	       USARTD_Configure(&(uart->Usartd), ID_USART1, uart->mode, uart->baud, BOARD_MCK);
-	       USARTD_EnableTxChannels(&(uart->Usartd), &(uart->UsartTx));
-	       USARTD_SendData(&(uart->Usartd));
+		if (direction == RT_SERIAL_DMA_TX)
+		{
+		       rt_memset(&(uart->UsartTx), 0, sizeof(UsartChannel));
+		       uart->UsartTx.BuffSize = size;
+		       uart->UsartTx.pBuff = buf;
+		       uart->UsartTx.dmaProgress = 1;
+		       uart->UsartTx.dmaProgrammingMode = XDMAD_SINGLE;
+		       uart->Usartd.pXdmad = &dmaDrv;
+		       uart->Usartd.pTxChannel = &(uart->UsartTx);
+		       uart->Usartd.pTxChannel->callback = (UsartdCallback)same70_USARTD_Tx_Cb;
+		       uart->Usartd.pTxChannel->pArgument= uart;
+		       USARTD_Configure(&(uart->Usartd), uart->id, uart->mode, uart->baud, BOARD_MCK);
+		       USARTD_EnableTxChannels(&(uart->Usartd), &(uart->UsartTx));
+		       USARTD_SendData(&(uart->Usartd));
+		}
+		else
+		{
+				rt_memset(&(uart->UsartRx), 0, sizeof(UsartChannel));
+				uart->UsartRx.BuffSize = size;
+				uart->UsartRx.pBuff = buf;
+				uart->UsartRx.dmaProgress = 1;
+				uart->UsartRx.dmaProgrammingMode = XDMAD_SINGLE;
+				uart->Usartd.pXdmad = &dmaDrv;
+				uart->Usartd.pRxChannel = &(uart->UsartRx);
+				uart->Usartd.pRxChannel->callback = (UsartdCallback)same70_USARTD_Rx_Cb;
+				uart->Usartd.pRxChannel->pArgument= uart;
+				USARTD_Configure(&(uart->Usartd), uart->id, uart->mode, uart->baud, BOARD_MCK);
+				USARTD_EnableRxChannels(&(uart->Usartd), &(uart->UsartRx));
+				USARTD_RcvData(&(uart->Usartd));
+		}
+	}
+	else
+	{
+		if (direction == RT_SERIAL_DMA_TX)
+		{
+		       rt_memset(&(uart->UartTx), 0, sizeof(UartChannel));
+		       uart->UartTx.BuffSize = size;
+		       uart->UartTx.pBuff = buf;
+		       uart->UartTx.dmaProgrammingMode = XDMAD_SINGLE;
+		       uart->Uartd.pXdmad = &dmaDrv;
+		       uart->Uartd.pTxChannel = &(uart->UartTx);
+		       uart->Uartd.pTxChannel->callback = (UartdCallback)same70_UARTD_Tx_Cb;
+		       uart->Uartd.pTxChannel->pArgument= uart;
+		       UARTD_Configure(&(uart->Uartd), uart->id, uart->mode, uart->baud, BOARD_MCK);
+		       UARTD_EnableTxChannels(&(uart->Uartd), &(uart->UartTx));
+		       UARTD_SendData(&(uart->Uartd));
+		}
+		else
+		{
+				rt_memset(&(uart->UartRx), 0, sizeof(UartChannel));
+				uart->UartRx.BuffSize = size;
+				uart->UartRx.pBuff = buf;
+				uart->UartRx.dmaProgrammingMode = XDMAD_SINGLE;
+				uart->Uartd.pXdmad = &dmaDrv;
+				uart->Uartd.pRxChannel = &(uart->UartRx);
+				uart->Uartd.pRxChannel->callback = (UartdCallback)same70_UARTD_Rx_Cb;
+				uart->Uartd.pRxChannel->pArgument= uart;
+				UARTD_Configure(&(uart->Uartd), uart->id, uart->mode, uart->baud, BOARD_MCK);
+				UARTD_EnableRxChannels(&(uart->Uartd), &(uart->UartRx));
+				UARTD_RcvData(&(uart->Uartd));
+		}
 	}
 	return size;
 }
@@ -448,10 +553,11 @@ int same70_hw_usart_init(void)
 	PIO_Configure(pPins0, PIO_LISTSIZE(pPins0));
 	PMC_EnablePeripheral(ID_USART0);
 	uart->type_usart = true;
-
+	uart->serial_device = &serial_usart0;
+	uart->id = ID_USART0;
     /* register USART0 device */
     rt_hw_serial_register(&serial_usart0, "usart0",
-                          RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+                          RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
                           uart);
 #endif 
 #ifdef RT_USING_USART1
@@ -464,10 +570,11 @@ int same70_hw_usart_init(void)
 	PIO_Configure(pPins1, PIO_LISTSIZE(pPins1));
 	PMC_EnablePeripheral(ID_USART1);
 	uart->type_usart = true;
-
+	uart->serial_device = &serial_usart1;
+	uart->id = ID_USART1;
 	/* register USART1 device */
 	rt_hw_serial_register(&serial_usart1, "usart1",
-						  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX| RT_DEVICE_FLAG_DMA_TX,
+						  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 						  uart);
 #endif 
 #ifdef RT_USING_UART0
@@ -475,15 +582,15 @@ int same70_hw_usart_init(void)
 		uart->UartHandle = UART0;
 		uart->irq = UART0_IRQn;
 		serial_uart0.ops	 = &same70_uart_ops;
-		serial_uart0.config = config;
 		const Pin pPins2[] = UART0_PINS;
 		PIO_Configure(pPins2, PIO_LISTSIZE(pPins2));
 		PMC_EnablePeripheral(ID_UART0);
 		uart->type_usart = false;
-	
+		uart->serial_device = &serial_uart0;
+		uart->id = ID_UART0;
 		/* register UART0 device */
 		rt_hw_serial_register(&serial_uart0, "uart0",
-							  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+							  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 							  uart);
 #endif 
 #ifdef RT_USING_UART1
@@ -491,15 +598,15 @@ int same70_hw_usart_init(void)
 			uart->UartHandle = UART1;
 			uart->irq = UART1_IRQn;
 			serial_uart1.ops	 = &same70_uart_ops;
-			serial_uart1.config = config;
 			const Pin pPins3[] = UART1_PINS;
 			PIO_Configure(pPins3, PIO_LISTSIZE(pPins3));
 			PMC_EnablePeripheral(ID_UART1);
 			uart->type_usart = false;
-		
+			uart->serial_device = &serial_uart1;
+			uart->id = ID_UART1;
 			/* register UART1 device */
 			rt_hw_serial_register(&serial_uart1, "uart1",
-								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 								  uart);
 #endif 
 #ifdef RT_USING_UART2
@@ -511,11 +618,12 @@ int same70_hw_usart_init(void)
 			const Pin pPins4[] = UART2_PINS;
 			PIO_Configure(pPins4, PIO_LISTSIZE(pPins4));
 			PMC_EnablePeripheral(ID_UART2);
-			uart->type_usart = false;
-		
+			uart->type_usart = false;		
+			uart->serial_device = &serial_uart2;			
+			uart->id = ID_UART2;
 			/* register UART2 device */
 			rt_hw_serial_register(&serial_uart2, "uart2",
-								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 								  uart);
 #endif 
 #ifdef RT_USING_UART3
@@ -528,10 +636,11 @@ int same70_hw_usart_init(void)
 			PIO_Configure(pPins5, PIO_LISTSIZE(pPins5));
 			PMC_EnablePeripheral(ID_UART3);
 			uart->type_usart = false;
-		
+			uart->serial_device = &serial_uart3;			
+			uart->id = ID_UART3;
 			/* register UART3 device */
 			rt_hw_serial_register(&serial_uart3, "uart3",
-								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 								  uart);
 #endif 
 #ifdef RT_USING_UART4
@@ -544,10 +653,11 @@ int same70_hw_usart_init(void)
 			PIO_Configure(pPins6, PIO_LISTSIZE(pPins6));
 			PMC_EnablePeripheral(ID_UART4);
 			uart->type_usart = false;
-		
+			uart->serial_device = &serial_uart4;
+			uart->id = ID_UART4;
 			/* register UART4 device */
 			rt_hw_serial_register(&serial_uart4, "uart4",
-								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+								  RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX | RT_DEVICE_FLAG_DMA_RX,
 								  uart);
 #endif 
 

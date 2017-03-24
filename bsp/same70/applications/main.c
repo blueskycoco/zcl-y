@@ -139,6 +139,11 @@ int main(void)
 		rt_kprintf("can not find usart1 \n");
 		return 0;
 	}
+	struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;				
+	config.baud_rate=100000;		
+	config.parity=PARITY_EVEN;		
+	config.bufsz = 0;		
+	rt_device_control(RT_DEVICE(dev_usart1), RT_DEVICE_CTRL_CONFIG, &config);
 	if (rt_device_open(dev_usart1, 
 		RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX 
 		) == RT_EOK)
