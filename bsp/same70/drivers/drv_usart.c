@@ -289,6 +289,18 @@ void USART0_Handler(void)
     {
         rt_hw_serial_isr(&serial_usart0, RT_SERIAL_EVENT_RX_IND);
     }
+	if (uart->UsartHandle->US_CSR & US_CSR_TIMEOUT) 
+	{		
+		USART_AcknowledgeRxTimeOut(uart->UsartHandle, 0);			
+		UsartChannel *pUsartdCh = uart->Usartd.pRxChannel;		
+		XDMAC_SoftwareFlushReq(uart->Usartd.pXdmad->pXdmacs, pUsartdCh->ChNum);		
+		if (pUsartdCh->dmaProgress == 0) 
+		{			
+			USARTD_DisableRxChannels(&(uart->Usartd), &(uart->UsartRx));			
+			SCB_InvalidateDCache_by_Addr((uint32_t *)pUsartdCh->pBuff, pUsartdCh->BuffSize);			
+			rt_hw_serial_isr(&serial_usart0, RT_SERIAL_EVENT_RX_DMADONE);		
+		}	
+	}
     /* leave interrupt */
     rt_interrupt_leave();
 }
@@ -310,6 +322,18 @@ void USART1_Handler(void)
     {
         rt_hw_serial_isr(&serial_usart1, RT_SERIAL_EVENT_RX_IND);
     }
+	if (uart->UsartHandle->US_CSR & US_CSR_TIMEOUT) 
+	{		
+		USART_AcknowledgeRxTimeOut(uart->UsartHandle, 0);			
+		UsartChannel *pUsartdCh = uart->Usartd.pRxChannel;		
+		XDMAC_SoftwareFlushReq(uart->Usartd.pXdmad->pXdmacs, pUsartdCh->ChNum);		
+		if (pUsartdCh->dmaProgress == 0) 
+		{			
+			USARTD_DisableRxChannels(&(uart->Usartd), &(uart->UsartRx));			
+			SCB_InvalidateDCache_by_Addr((uint32_t *)pUsartdCh->pBuff, pUsartdCh->BuffSize);			
+			rt_hw_serial_isr(&serial_usart1, RT_SERIAL_EVENT_RX_DMADONE);		
+		}	
+	}
     /* leave interrupt */
     rt_interrupt_leave();
 }
@@ -500,6 +524,9 @@ rt_size_t same70_dma_transmit(struct rt_serial_device *serial, rt_uint8_t *buf, 
 				uart->Usartd.pRxChannel->callback = (UsartdCallback)same70_USARTD_Rx_Cb;
 				uart->Usartd.pRxChannel->pArgument= uart;
 				USARTD_Configure(&(uart->Usartd), uart->id, uart->mode, uart->baud, BOARD_MCK);
+				USART_EnableRecvTimeOut(uart->UsartHandle, 115200);
+				USART_EnableIt(uart->UsartHandle, US_IER_TIMEOUT);
+				UART_ENABLE_IRQ(uart->irq);
 				USARTD_EnableRxChannels(&(uart->Usartd), &(uart->UsartRx));
 				USARTD_RcvData(&(uart->Usartd));
 		}
