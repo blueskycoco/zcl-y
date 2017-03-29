@@ -63,6 +63,30 @@ static void usartd1_rx(void* parameter)
 		rt_kprintf("%s", buf);
 	}
 }
+static void usart1_rx(void* parameter)
+{		
+	__attribute__((__aligned__(32))) volatile rt_uint8_t buf[25] = {0};	
+	int i=0;
+	while (1)
+	{	
+		for(i=0;i<25;i++)
+		{
+			buf[i] = 0;
+		}
+		rt_device_read(dev_usart1,0,buf,25);	
+		
+		rt_sem_take(&rx_sem, RT_WAITING_FOREVER);
+
+		for(i=0;i<25;i++)
+		{
+			rt_kprintf("%2x,",buf[i]);
+		}
+		rt_kprintf("\n");
+		
+
+	}
+
+}
 #endif
 void mnt_init(void)
 {
@@ -132,7 +156,7 @@ void mob_tx()
 
 int main(void)
 {
-#if 0
+#if 1
 	dev_usart1 = rt_device_find("usart1");
 
 	if (dev_usart1 == RT_NULL) {
@@ -140,12 +164,12 @@ int main(void)
 		return 0;
 	}
 	struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;				
-	config.baud_rate=100000;		
-	config.parity=PARITY_EVEN;		
+	//config.baud_rate=100000;		
+	//config.parity=PARITY_EVEN;		
 	config.bufsz = 0;		
 	rt_device_control(RT_DEVICE(dev_usart1), RT_DEVICE_CTRL_CONFIG, &config);
 	if (rt_device_open(dev_usart1, 
-		RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX 
+		RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX 
 		) == RT_EOK)
 	{
 		rt_sem_init(&rx_sem, "usart1_sem", 0, 0);
@@ -175,7 +199,7 @@ int main(void)
 	}
 #endif
 	cpu_usage_init();
-	#if 1
+	#if 0
 	eeprom_init();
 	rt_uint8_t data[8]={0};
 	for(int i=0;i<8;i++)
@@ -188,7 +212,6 @@ int main(void)
 		for(int i=0;i<8;i++)
 			rt_kprintf("I2C %x\n", data[i]);
 	}
-	#endif
 	rt_uint16_t calc[7]={0};
 	rt_uint32_t temp,press;
 	ms5611_reset();
@@ -196,6 +219,7 @@ int main(void)
 	rt_kprintf("prees info is \ncalc %x %x %x %x %x %x %x\ntemp %x\npress %x\n", 
 	calc[0],calc[1],calc[2],calc[3],calc[4],calc[5],calc[6],
 	temp,press);
+	#endif
 	//mnt_init();
 //	rt_data_queue_init(&data_queue, 8, 4, RT_NULL);		
 //	rt_thread_startup(rt_thread_create("thr_moa",
