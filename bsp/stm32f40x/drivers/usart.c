@@ -23,12 +23,12 @@
 #include <rtdevice.h>
 
 /* UART GPIO define. */
-#define UART1_GPIO_TX       GPIO_Pin_6
-#define UART1_TX_PIN_SOURCE GPIO_PinSource6
-#define UART1_GPIO_RX       GPIO_Pin_7
-#define UART1_RX_PIN_SOURCE GPIO_PinSource7
-#define UART1_GPIO          GPIOB
-#define UART1_GPIO_RCC      RCC_AHB1Periph_GPIOB
+#define UART1_GPIO_TX       GPIO_Pin_9
+#define UART1_TX_PIN_SOURCE GPIO_PinSource9
+#define UART1_GPIO_RX       GPIO_Pin_10
+#define UART1_RX_PIN_SOURCE GPIO_PinSource10
+#define UART1_GPIO          GPIOA
+#define UART1_GPIO_RCC      RCC_AHB1Periph_GPIOA
 #define RCC_APBPeriph_UART1 RCC_APB2Periph_USART1
 
 #define UART2_GPIO_TX       GPIO_Pin_2
@@ -39,31 +39,13 @@
 #define UART2_GPIO_RCC      RCC_AHB1Periph_GPIOA
 #define RCC_APBPeriph_UART2 RCC_APB1Periph_USART2
 
-#define UART3_GPIO_TX       GPIO_Pin_8
-#define UART3_TX_PIN_SOURCE GPIO_PinSource8
-#define UART3_GPIO_RX       GPIO_Pin_9
-#define UART3_RX_PIN_SOURCE GPIO_PinSource9
-#define UART3_GPIO          GPIOD
-#define UART3_GPIO_RCC      RCC_AHB1Periph_GPIOD
+#define UART3_GPIO_TX       GPIO_Pin_10
+#define UART3_TX_PIN_SOURCE GPIO_PinSource10
+#define UART3_GPIO_RX       GPIO_Pin_11
+#define UART3_RX_PIN_SOURCE GPIO_PinSource11
+#define UART3_GPIO          GPIOB
+#define UART3_GPIO_RCC      RCC_AHB1Periph_GPIOB
 #define RCC_APBPeriph_UART3 RCC_APB1Periph_USART3
-
-#define UART4_GPIO_TX       GPIO_Pin_10
-#define UART4_TX_PIN_SOURCE GPIO_PinSource10
-#define UART4_GPIO_RX       GPIO_Pin_11
-#define UART4_RX_PIN_SOURCE GPIO_PinSource11
-#define UART4_GPIO          GPIOC
-#define UART4_GPIO_RCC      RCC_AHB1Periph_GPIOC
-#define RCC_APBPeriph_UART4 RCC_APB1Periph_UART4
-
-#define UART5_GPIO_TX       GPIO_Pin_12
-#define UART5_TX_PIN_SOURCE GPIO_PinSource12
-#define UART5_GPIO_RX       GPIO_Pin_2
-#define UART5_RX_PIN_SOURCE GPIO_PinSource2
-#define UART5_TX            GPIOC
-#define UART5_RX            GPIOD
-#define UART5_GPIO_RCC_TX   RCC_AHB1Periph_GPIOB
-#define UART5_GPIO_RCC_RX   RCC_AHB1Periph_GPIOD
-#define RCC_APBPeriph_UART5 RCC_APB1Periph_UART5
 
 /* STM32 uart driver */
 struct stm32_uart
@@ -435,84 +417,6 @@ void DMA1_Stream1_IRQHandler(void) {
 }
 #endif /* RT_USING_UART3 */
 
-#if defined(RT_USING_UART4)
-/* UART4 device driver structure */
-struct stm32_uart uart4 =
-{
-    UART4,
-    UART4_IRQn,
-    {
-        DMA1_Stream2,
-        DMA_Channel_4,
-        DMA_FLAG_TCIF2,
-        DMA1_Stream2_IRQn,
-        0,
-        0,
-    },
-};
-struct rt_serial_device serial4;
-
-void UART4_IRQHandler(void)
-{
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    uart_isr(&serial4);
-
-    /* leave interrupt */
-    rt_interrupt_leave();
-}
-
-void DMA1_Stream2_IRQHandler(void) {
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    dma_rx_done_isr(&serial4);
-
-    /* leave interrupt */
-    rt_interrupt_leave();
-}
-#endif /* RT_USING_UART4 */
-
-#if defined(RT_USING_UART5)
-/* UART5 device driver structure */
-struct stm32_uart uart5 =
-{
-    UART5,
-    UART5_IRQn,
-    {
-        DMA1_Stream0,
-        DMA_Channel_4,
-        DMA_FLAG_TCIF0,
-        DMA1_Stream0_IRQn,
-        0,
-        0,
-    },
-};
-struct rt_serial_device serial5;
-
-void UART5_IRQHandler(void)
-{
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    uart_isr(&serial5);
-
-    /* leave interrupt */
-    rt_interrupt_leave();
-}
-
-void DMA1_Stream0_IRQHandler(void) {
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    dma_rx_done_isr(&serial5);
-
-    /* leave interrupt */
-    rt_interrupt_leave();
-}
-#endif /* RT_USING_UART5 */
-
 static void RCC_Configuration(void)
 {
 #ifdef RT_USING_UART1
@@ -536,19 +440,6 @@ static void RCC_Configuration(void)
     RCC_APB1PeriphClockCmd(RCC_APBPeriph_UART3, ENABLE);
 #endif /* RT_USING_UART3 */
 
-#ifdef RT_USING_UART4
-    /* Enable UART4 GPIO clocks */
-    RCC_AHB1PeriphClockCmd(UART4_GPIO_RCC, ENABLE);
-    /* Enable UART4 clock */
-    RCC_APB1PeriphClockCmd(RCC_APBPeriph_UART4, ENABLE);
-#endif /* RT_USING_UART4 */
-
-#ifdef RT_USING_UART5
-    /* Enable UART5 GPIO clocks */
-    RCC_AHB1PeriphClockCmd(UART5_GPIO_RCC_TX | UART5_GPIO_RCC_RX, ENABLE);
-    /* Enable UART5 clock */
-    RCC_APB1PeriphClockCmd(RCC_APBPeriph_UART5, ENABLE);
-#endif /* RT_USING_UART5 */
 }
 
 static void GPIO_Configuration(void)
@@ -590,27 +481,6 @@ static void GPIO_Configuration(void)
     GPIO_PinAFConfig(UART3_GPIO, UART3_RX_PIN_SOURCE, GPIO_AF_USART3);
 #endif /* RT_USING_UART3 */
 
-#ifdef RT_USING_UART4
-    /* Configure USART4 Rx/tx PIN */
-    GPIO_InitStructure.GPIO_Pin = UART4_GPIO_TX | UART4_GPIO_RX;
-    GPIO_Init(UART4_GPIO, &GPIO_InitStructure);
-
-    /* Connect alternate function */
-    GPIO_PinAFConfig(UART4_GPIO, UART4_TX_PIN_SOURCE, GPIO_AF_UART4);
-    GPIO_PinAFConfig(UART4_GPIO, UART4_RX_PIN_SOURCE, GPIO_AF_UART4);
-#endif /* RT_USING_UART4 */
-
-#ifdef RT_USING_UART5
-    /* Configure USART5 Rx/tx PIN */
-    GPIO_InitStructure.GPIO_Pin = UART5_GPIO_TX;
-    GPIO_Init(UART5_TX, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = UART5_GPIO_RX;
-    GPIO_Init(UART5_RX, &GPIO_InitStructure);
-
-    /* Connect alternate function */
-    GPIO_PinAFConfig(UART5_TX, UART5_TX_PIN_SOURCE, GPIO_AF_UART5);
-    GPIO_PinAFConfig(UART5_RX, UART5_RX_PIN_SOURCE, GPIO_AF_UART5);
-#endif /* RT_USING_UART5 */
 }
 
 static void NVIC_Configuration(struct stm32_uart *uart)
@@ -706,35 +576,6 @@ int stm32_hw_usart_init(void)
                           uart);
 #endif /* RT_USING_UART3 */
 
-#ifdef RT_USING_UART4
-    uart = &uart4;
-
-    serial4.ops    = &stm32_uart_ops;
-    serial4.config = config;
-
-    NVIC_Configuration(&uart4);
-
-    /* register UART4 device */
-    rt_hw_serial_register(&serial4,
-                          "uart4",
-                          RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_RX,
-                          uart);
-#endif /* RT_USING_UART4 */
-
-#ifdef RT_USING_UART5
-    uart = &uart5;
-
-    serial5.ops    = &stm32_uart_ops;
-    serial5.config = config;
-
-    NVIC_Configuration(&uart5);
-
-    /* register UART5 device */
-    rt_hw_serial_register(&serial5,
-                          "uart5",
-                          RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_RX,
-                          uart);
-#endif /* RT_USING_UART5 */
     return 0;
 }
 INIT_BOARD_EXPORT(stm32_hw_usart_init);

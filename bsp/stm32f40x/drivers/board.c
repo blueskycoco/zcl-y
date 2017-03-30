@@ -94,11 +94,18 @@ void rt_hw_board_init()
     SysTick_Configuration();
 
     stm32_hw_usart_init();
-    stm32_hw_pin_init();
+    //stm32_hw_pin_init();
     
 #ifdef RT_USING_CONSOLE
     rt_console_set_device(CONSOLE_DEVICE);
 #endif
+}
+void assert_failed(u8* file, u32 line)
+{    
+	rt_kprintf("\n\r Wrong parameter value detected on\r\n");    
+	rt_kprintf("       file  %s\r\n", file);    
+	rt_kprintf("       line  %d\r\n", line);    
+	while (1) ;
 }
 
 /*@}*/

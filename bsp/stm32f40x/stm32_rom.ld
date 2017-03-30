@@ -45,6 +45,26 @@ SECTIONS
         KEEP(*(SORT(.rti_fn*)))
         __rt_init_end = .;
         . = ALIGN(4);
+        
+        . = ALIGN(4);
+        PROVIDE(__ctors_start__ = .);
+        /* old GCC version uses .ctors */
+        KEEP(*(SORT(.ctors.*)))
+        KEEP(*(.ctors))
+        /* new GCC version uses .init_array */
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        PROVIDE(__ctors_end__ = .);
+
+        PROVIDE(__dtors_start__ = .);
+        KEEP(*(SORT(.dtors.*)))
+        KEEP(*(.dtors))
+        PROVIDE(__dtors_end__ = .);
+        /* section information for modules */
+        . = ALIGN(4);
+        __rtmsymtab_start = .;
+        KEEP(*(RTMSymTab))
+        __rtmsymtab_end = .;
 
         . = ALIGN(4);
         _etext = .;

@@ -48,7 +48,7 @@
 /* SECTION: Memory Management */
 /* Using Memory Pool Management*/
 #define RT_USING_MEMPOOL
-
+#define RT_USING_MEMHEAP
 /* Using Dynamic Heap Management */
 #define RT_USING_HEAP
 
@@ -67,7 +67,7 @@
 #define RT_USING_UART3
 
 /* Using GPIO pin framework */
-#define RT_USING_PIN
+/*#define RT_USING_PIN*/
 
 /* Using Hardware Timer framework */
 //#define RT_USING_HWTIMER
@@ -82,17 +82,21 @@
 /* Using symbol table */
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
+#define FINSH_THREAD_PRIORITY 0xa
+#define FINSH_THREAD_STACK_SIZE 4096
+#define FINSH_USING_MSH
+#define FINSH_USING_MSH_DEFAULT
 
 /* SECTION: device filesystem */
 /* Using Device file system */
-/* #define RT_USING_DFS */
+#define RT_USING_DFS
 /* the max number of mounted filesystem */
 #define DFS_FILESYSTEMS_MAX			2
 /* the max number of opened files 		*/
 #define DFS_FD_MAX					4
 
 /* Using ELM FATFS */
-//#define RT_USING_DFS_ELMFAT
+#define RT_USING_DFS_ELMFAT
 #define RT_DFS_ELM_WORD_ACCESS
 /* Reentrancy (thread safe) of the FatFs module.  */
 #define RT_DFS_ELM_REENTRANT
@@ -157,5 +161,12 @@
 
 /* RT_GDB_STUB */
 //#define RT_USING_GDB
+#define RT_USING_RYM
+#define RT_USING_MODULE
+#define RT_USING_CPLUSPLUS
+#define RT_USING_COMPONENTS_INIT
+#define RT_USING_USER_MAIN
+#define RT_USING_LIBC
+#define RT_USING_DFS_DEVFS
 
 #endif
