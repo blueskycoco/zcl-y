@@ -168,5 +168,5 @@
 #define RT_USING_USER_MAIN
 #define RT_USING_LIBC
 #define RT_USING_DFS_DEVFS
-
+#define RT_USING_MTD_NAND
 #endif

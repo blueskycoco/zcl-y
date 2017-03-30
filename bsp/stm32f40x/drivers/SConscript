@@ -9,15 +9,8 @@ src = Split("""
 board.c
 stm32f4xx_it.c
 usart.c
+nand.c
 """)
-
-# add Ethernet drivers.
-if GetDepend('RT_USING_LWIP'):
-    src += ['stm32f4xx_eth.c']
-
-# add gpio drivers.
-if GetDepend('RT_USING_PIN'):
-    src += ['gpio.c']
 
 CPPPATH = [cwd]
 

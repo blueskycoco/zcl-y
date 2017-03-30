@@ -18,7 +18,6 @@
 #include "stm32f4xx.h"
 #include "board.h"
 #include "usart.h"
-#include "gpio.h"
 
 /**
  * @addtogroup STM32
