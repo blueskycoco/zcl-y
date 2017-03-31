@@ -261,7 +261,7 @@ static rt_err_t nand_mtd_mark_bad_block(
 static rt_err_t nand_mtd_copy_page(struct rt_mtd_nand_device* device, rt_off_t src_page, rt_off_t dst_page)
 {
 	rt_err_t result=RT_ERROR;	
-    //rt_uint32_t status = NAND_READY ;
+    rt_uint32_t status = NAND_READY ;
     rt_uint32_t data = 0xff;
 	rt_mutex_take(&nand, RT_WAITING_FOREVER);
     /* Page write command and address */
@@ -283,11 +283,11 @@ static rt_err_t nand_mtd_copy_page(struct rt_mtd_nand_device* device, rt_off_t s
     
     while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
     /* Check status for successful operation */
-    //status = FSMC_NAND_GetStatus();
+    status = FSMC_NAND_GetStatus();
     
     data = *(vu8 *)(Bank_NAND_ADDR | DATA_AREA);
     
-    if(!(data&0x1)) {
+    if(!(data&0x1) || status == NAND_READY) {
 		//status = NAND_READY;
 		result = RT_EOK;
     }
