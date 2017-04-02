@@ -150,7 +150,7 @@ void mob_tx()
 
 int main(void)
 {
-#if 1
+#if 0
 	dev_usart1 = rt_device_find("usart1");
 
 	if (dev_usart1 == RT_NULL) {

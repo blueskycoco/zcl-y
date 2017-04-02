@@ -42,7 +42,7 @@
 extern char __ICFEDIT_region_RAM_end__;
 #define STM32_SRAM_END          &__ICFEDIT_region_RAM_end__
 #else
-#define STM32_SRAM_SIZE         192
+#define STM32_SRAM_SIZE         128
 #define STM32_SRAM_END          (0x20000000 + STM32_SRAM_SIZE * 1024)
 #endif
 

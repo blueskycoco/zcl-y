@@ -22,6 +22,16 @@
 /**
  * @addtogroup STM32
  */
+#ifdef __CC_ARM
+	extern int Image$$RW_IRAM1$$ZI$$Limit;
+#define STM32_SRAM_BEGIN    (&Image$$RW_IRAM1$$ZI$$Limit)
+#elif __ICCARM__
+#pragma section="HEAP"
+#define STM32_SRAM_BEGIN    (__segment_end("HEAP"))
+#else
+	extern int __bss_end;
+#define STM32_SRAM_BEGIN    (&__bss_end)
+#endif
 
 /*@{*/
 
@@ -94,7 +104,11 @@ void rt_hw_board_init()
 
     stm32_hw_usart_init();
     //stm32_hw_pin_init();
-    
+#ifdef RT_USING_COMPONENTS_INIT
+    rt_components_board_init();
+#endif
+
+    rt_system_heap_init((void*)STM32_SRAM_BEGIN, (void*)STM32_SRAM_END);
 #ifdef RT_USING_CONSOLE
     rt_console_set_device(CONSOLE_DEVICE);
 #endif
