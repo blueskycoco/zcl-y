@@ -449,7 +449,8 @@ static rt_err_t nand_read_id(
 		struct rt_mtd_nand_device * dev)
 {
 	NAND_IDTypeDef NAND_ID;
-	NAND_ReadID(&NAND_ID);
+	NAND_ReadID(&NAND_ID);	
+	rt_kprintf("\nNand Flash ID:0x%02x 0x%02x 0x%02x 0x%02x \n",NAND_ID.Maker_ID,NAND_ID.Device_ID, NAND_ID.Third_ID,NAND_ID.Fourth_ID);
     return RT_EOK;	
 }
 
@@ -475,7 +476,7 @@ void k9f2808_mtd_init()
 	nand_part.ops = &nand_mtd_ops;
 	rt_mtd_nand_register_device("nand0", &nand_part);
 }
-void nand_mtd_init()
+int nand_mtd_init(void)
 {
 	NAND_IDTypeDef NAND_ID;
 	#define NAND_HY_MakerID    0XEC
@@ -492,7 +493,10 @@ void nand_mtd_init()
 	}
 
 	k9f2808_mtd_init();
+	return 0;
 }
+//INIT_BOARD_EXPORT(nand_mtd_init);
+/*
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 void nand_id()
@@ -504,6 +508,6 @@ void nand_id()
 	return ;
 }
 FINSH_FUNCTION_EXPORT(nand_id, get nand id. e.g: nand_id())
-#endif
+#endif*/
 #endif
 

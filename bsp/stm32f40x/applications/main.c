@@ -147,7 +147,7 @@ void mob_tx()
 	rt_thread_delay(RT_TICK_PER_SECOND);
 	}
 }
-
+extern int nand_mtd_init(void);
 int main(void)
 {
 #if 0
@@ -172,9 +172,11 @@ int main(void)
 			usart1_rx, RT_NULL,2048, 20, 10));
 	}
 #else
-	rt_thread_startup(rt_thread_create("usartd1_rx",
-		usartd1_rx, RT_NULL,2048, 20, 10));
+	//rt_thread_startup(rt_thread_create("usartd1_rx",
+	//	usartd1_rx, RT_NULL,2048, 20, 10));
 #endif
+nand_mtd_init();
+
 /*#ifdef RT_USING_DFS
 	rt_hw_spi_init();	
     rt_sfud_flash_probe("flash", "spi10");	

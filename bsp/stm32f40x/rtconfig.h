@@ -169,4 +169,5 @@
 #define RT_USING_LIBC
 #define RT_USING_DFS_DEVFS
 #define RT_USING_MTD_NAND
+#define RT_MTD_NAND_DEBUG
 #endif
