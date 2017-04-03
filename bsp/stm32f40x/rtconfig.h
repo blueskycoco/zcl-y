@@ -78,7 +78,7 @@
 #define RT_CONSOLEBUF_SIZE	128
 
 /* SECTION: finsh, a C-Express shell */
-#define RT_USING_FINSH
+//#define RT_USING_FINSH
 /* Using symbol table */
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
@@ -170,4 +170,5 @@
 #define RT_USING_DFS_DEVFS
 #define RT_USING_MTD_NAND
 #define RT_MTD_NAND_DEBUG
+#define RT_SERIAL_RB_BUFSZ              8192
 #endif
