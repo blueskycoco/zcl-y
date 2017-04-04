@@ -68,7 +68,7 @@ typedef struct
 // Nand Flash HY27UF081G2A ???
 #define NAND_PAGE_SIZE             ((uint16_t)0x0800) /* 2048 bytes per page w/o Spare Area */
 #define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
-#define NAND_ZONE_SIZE             ((uint16_t)0x0800) /* 2048 Block per zone */
+#define NAND_ZONE_SIZE             ((uint16_t)0x0400) /* 2048 Block per zone */
 #define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
 #define NAND_MAX_ZONE              ((uint16_t)0x0002) /* 2 zones of 2048 block */
 
@@ -495,19 +495,5 @@ int nand_mtd_init(void)
 	k9f2808_mtd_init();
 	return 0;
 }
-//INIT_BOARD_EXPORT(nand_mtd_init);
-/*
-#ifdef RT_USING_FINSH
-#include <finsh.h>
-void nand_id()
-{
-	NAND_IDTypeDef NAND_ID;
-	
-	NAND_ReadID(&NAND_ID);
-	rt_kprintf("\nNand Flash ID:0x%02x 0x%02x 0x%02x 0x%02x \n",NAND_ID.Maker_ID,NAND_ID.Device_ID, NAND_ID.Third_ID,NAND_ID.Fourth_ID);
-	return ;
-}
-FINSH_FUNCTION_EXPORT(nand_id, get nand id. e.g: nand_id())
-#endif*/
 #endif
 

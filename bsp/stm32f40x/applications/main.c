@@ -71,10 +71,14 @@ static void uart2_rx(void* parameter)
 		rt_device_write(dev_uart2,0,buf,len);
 	}
 }
-
+void sdram_init(void);
 extern int nand_mtd_init(void);
+void *sram_malloc(unsigned long size);
+void sram_free(void *ptr);
+
 int main(void)
 {
+#if 0
 	dev_uart1 = rt_device_find("uart1");
 
 	if (dev_uart1 == RT_NULL) {
@@ -105,9 +109,10 @@ int main(void)
 		rt_thread_startup(rt_thread_create("uart2_rx",
 			uart2_rx, RT_NULL,2048, 20, 10));
 	}
-
+#endif
+	sdram_init();
 	nand_mtd_init();
-	if (dfs_mount("nand0", "/", "elm", 0, 0) == 0)
+	if (dfs_mount("nand0", "/", "uffs", 0, 0) == 0)
 	{
 	    rt_kprintf("NAND File System initialized!\n");
 	}
@@ -115,7 +120,58 @@ int main(void)
 	{
 	    rt_kprintf("NAND File System initialzation failed!\n");
 	}
-
+	/*rt_uint8_t *tmp = (rt_uint8_t *)sram_malloc(128);
+	rt_memset(tmp,0x34,127);
+	tmp[127]='\0';
+	rt_kprintf("test %s\n",tmp);
+	sram_free(tmp);*/
     return 0;
 }
+struct rt_memheap system_heap;
 
+void sdram_init(void)
+{
+	if (RT_EOK != rt_memheap_init(&system_heap,
+						"system",
+						(void *)0x10000000,
+						(void *)0x10010000))
+		return ;
+	
+	return ;
+}
+void *sram_malloc(unsigned long size)
+{
+    return rt_memheap_alloc(&system_heap, size);
+}
+RTM_EXPORT(sram_malloc);
+
+void sram_free(void *ptr)
+{
+    rt_memheap_free(ptr);
+}
+RTM_EXPORT(sram_free);
+
+void *sram_realloc(void *ptr, unsigned long size)
+{
+    return rt_memheap_realloc(&system_heap, ptr, size);
+}
+RTM_EXPORT(sram_realloc);
+
+#ifdef RT_USING_FINSH
+#ifdef FINSH_USING_MSH
+#include <finsh.h>
+
+#ifdef DFS_USING_WORKDIR
+int cmd_exec(int argc, char **argv)
+{
+	if (argc == 2)
+	{
+		msh_exec(argv[1],strlen(argv[1]));
+	}
+
+	return 0;
+}
+FINSH_FUNCTION_EXPORT_ALIAS(cmd_exec, __cmd_exec, exec a app module);
+#endif
+#endif
+#endif
