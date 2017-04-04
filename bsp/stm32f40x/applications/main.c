@@ -62,12 +62,12 @@ static rt_err_t rx_ind_uart2(rt_device_t dev, rt_size_t size)
 }
 static void uart2_rx(void* parameter)
 {		
-	rt_uint8_t buf[128] = {0};	
+	rt_uint8_t buf[25] = {0};	
 	int i=0,len;
 	while (1)
 	{
 		rt_sem_take(&rx_sem_uart2, RT_WAITING_FOREVER);
-		len = rt_device_read(dev_uart2,0,buf,128);
+		len = rt_device_read(dev_uart2,0,buf,25);
 		rt_device_write(dev_uart2,0,buf,len);
 	}
 }
@@ -92,8 +92,9 @@ int main(void)
 		rt_sem_init(&rx_sem_uart1, "uart1_sem", 0, 0);
 		rt_device_set_rx_indicate(dev_uart1, rx_ind_uart1);
 		rt_thread_startup(rt_thread_create("uart1_rx",
-			uart1_rx, RT_NULL,2048, 20, 10));
+			uart1_rx, RT_NULL,512, 20, 10));
 	}
+
 	dev_uart2 = rt_device_find("uart3");
 
 	if (dev_uart2 == RT_NULL) {
@@ -107,7 +108,7 @@ int main(void)
 		rt_sem_init(&rx_sem_uart2, "uart2_sem", 0, 0);
 		rt_device_set_rx_indicate(dev_uart2, rx_ind_uart2);
 		rt_thread_startup(rt_thread_create("uart2_rx",
-			uart2_rx, RT_NULL,2048, 20, 10));
+			uart2_rx, RT_NULL,512, 20, 10));
 	}
 #endif
 	sdram_init();
