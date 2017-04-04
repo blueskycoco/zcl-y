@@ -73,6 +73,7 @@ static void uart2_rx(void* parameter)
 }
 void sdram_init(void);
 extern int nand_mtd_init(void);
+extern rt_int32_t rt_hw_nand_init(void);
 void *sram_malloc(unsigned long size);
 void sram_free(void *ptr);
 
@@ -112,15 +113,10 @@ int main(void)
 	}
 #endif
 	sdram_init();
-	nand_mtd_init();
-	if (dfs_mount("nand0", "/", "uffs", 0, 0) == 0)
-	{
-	    rt_kprintf("NAND File System initialized!\n");
-	}
-	else
-	{
-	    rt_kprintf("NAND File System initialzation failed!\n");
-	}
+	//nand_mtd_init();
+	rt_hw_nand_init();
+    rt_kprintf("NAND File System initialzation %d \n",dfs_mount("nand0", "/", "elm", 0, 0));
+	rt_kprintf("last error %d\n",rt_get_errno());
 	/*rt_uint8_t *tmp = (rt_uint8_t *)sram_malloc(128);
 	rt_memset(tmp,0x34,127);
 	tmp[127]='\0';

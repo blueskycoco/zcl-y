@@ -9,7 +9,7 @@ src = Split("""
 board.c
 stm32f4xx_it.c
 usart.c
-nand.c
+nand-elm.c
 """)
 
 CPPPATH = [cwd]

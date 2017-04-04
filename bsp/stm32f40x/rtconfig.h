@@ -96,16 +96,16 @@
 //#define DFS_FD_MAX					4
 
 /* Using ELM FATFS */
-//#define RT_USING_DFS_ELMFAT
+#define RT_USING_DFS_ELMFAT
 #define RT_DFS_ELM_WORD_ACCESS
 /* Reentrancy (thread safe) of the FatFs module.  */
 #define RT_DFS_ELM_REENTRANT
 /* Number of volumes (logical drives) to be used. */
 #define RT_DFS_ELM_DRIVES			2
 /* #define RT_DFS_ELM_USE_LFN			1 */
-#define RT_DFS_ELM_MAX_LFN			255
+//#define RT_DFS_ELM_MAX_LFN			255
 /* Maximum sector size to be handled. */
-#define RT_DFS_ELM_MAX_SECTOR_SIZE  512
+//#define RT_DFS_ELM_MAX_SECTOR_SIZE  512
 
 /* Using ROM file system */
 // #define RT_USING_DFS_ROMFS
@@ -174,12 +174,17 @@
 //#define RT_USING_DFS 1
 //#define RT_USING_MTD_NAND 1
 //#define RT_USING_DFS_DEVFS 1
-#define RT_USING_DFS_UFFS	1
+//#define RT_USING_DFS_UFFS	1
 #define RT_CONFIG_UFFS_ECC_MODE 	UFFS_ECC_SOFT
 #define RT_UFFS_DEVICE_MAX          1
 #define RT_UFFS_USE_CHECK_MARK_FUNCITON 1
 //#define DFS_FILESYSTEMS_MAX			2
 #define DFS_FD_MAX	2
 #define DFS_USING_WORKDIR
+#define DFS_FILESYSTEM_TYPES_MAX  4
+#define RT_DFS_ELM_USE_LFN	3
+#define RT_DFS_ELM_CODE_PAGE	437
+#define RT_DFS_ELM_MAX_LFN	256
+#define RT_DFS_ELM_MAX_SECTOR_SIZE  4096
 
 #endif
