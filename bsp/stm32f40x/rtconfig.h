@@ -96,7 +96,6 @@
 //#define DFS_FD_MAX					4
 
 /* Using ELM FATFS */
-#define RT_USING_DFS_ELMFAT
 #define RT_DFS_ELM_WORD_ACCESS
 /* Reentrancy (thread safe) of the FatFs module.  */
 #define RT_DFS_ELM_REENTRANT
@@ -171,14 +170,14 @@
 #define RT_USING_MTD_NAND
 #define RT_MTD_NAND_DEBUG
 #define RT_SERIAL_RB_BUFSZ              128
-//#define RT_USING_DFS 1
-//#define RT_USING_MTD_NAND 1
-//#define RT_USING_DFS_DEVFS 1
-//#define RT_USING_DFS_UFFS	1
+
+//#define RT_USING_MTD_NAND
+//#define RT_USING_DFS_UFFS
+#define RT_USING_DFS_ELMFAT
+
 #define RT_CONFIG_UFFS_ECC_MODE 	UFFS_ECC_SOFT
 #define RT_UFFS_DEVICE_MAX          1
 #define RT_UFFS_USE_CHECK_MARK_FUNCITON 1
-//#define DFS_FILESYSTEMS_MAX			2
 #define DFS_FD_MAX	2
 #define DFS_USING_WORKDIR
 #define DFS_FILESYSTEM_TYPES_MAX  4

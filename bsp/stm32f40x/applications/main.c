@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <rtdevice.h>
-
+#include <board.h>
 static struct rt_semaphore rx_sem_uart1;
 rt_device_t dev_uart1 = RT_NULL;
 static struct rt_semaphore rx_sem_uart2;
@@ -71,6 +71,26 @@ static void uart2_rx(void* parameter)
 		rt_device_write(dev_uart2,0,buf,len);
 	}
 }
+static void led_thread(void* parameter)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	GPIO_InitStructure.GPIO_Pin	   = GPIO_Pin_0;	
+	GPIO_InitStructure.GPIO_OType	= GPIO_OType_PP;	
+	GPIO_InitStructure.GPIO_Speed	= GPIO_Speed_100MHz; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;        
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; 
+	GPIO_Init(GPIOB, &GPIO_InitStructure); 
+
+	while (1)
+	{
+		GPIO_SetBits(GPIOB, GPIO_Pin_0); 
+		rt_thread_delay(100);
+		GPIO_ResetBits(GPIOB, GPIO_Pin_0); 
+		rt_thread_delay(100);
+	}
+}
+
 void sdram_init(void);
 extern int nand_mtd_init(void);
 extern rt_int32_t rt_hw_nand_init(void);
@@ -79,7 +99,7 @@ void sram_free(void *ptr);
 
 int main(void)
 {
-#if 0
+#if 1
 	dev_uart1 = rt_device_find("uart1");
 
 	if (dev_uart1 == RT_NULL) {
@@ -112,10 +132,16 @@ int main(void)
 			uart2_rx, RT_NULL,512, 20, 10));
 	}
 #endif
+	rt_thread_startup(rt_thread_create("led",
+			led_thread, RT_NULL,256, 20, 10));
 	sdram_init();
-	//nand_mtd_init();
+#ifdef RT_USING_DFS_UFFS
+	nand_mtd_init();
+	rt_kprintf("NAND File System initialzation %d \n",dfs_mount("nand0", "/", "uffs", 0, 0));
+#else
 	rt_hw_nand_init();
     rt_kprintf("NAND File System initialzation %d \n",dfs_mount("nand0", "/", "elm", 0, 0));
+#endif
 	rt_kprintf("last error %d\n",rt_get_errno());
 	/*rt_uint8_t *tmp = (rt_uint8_t *)sram_malloc(128);
 	rt_memset(tmp,0x34,127);
