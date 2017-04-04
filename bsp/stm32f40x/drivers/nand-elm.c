@@ -9,7 +9,7 @@
 #define NAND_TRACE         rt_kprintf
 #else
 #define NAND_TRACE(...)
-#endif /* #ifdef NAND_DEBUG */
+#endif
 static struct rt_mutex lock;
 static struct rt_device flash_device;
 
