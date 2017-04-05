@@ -171,9 +171,9 @@
 #define RT_MTD_NAND_DEBUG
 #define RT_SERIAL_RB_BUFSZ              128
 
-//#define RT_USING_MTD_NAND
-//#define RT_USING_DFS_UFFS
-#define RT_USING_DFS_ELMFAT
+#define RT_USING_MTD_NAND
+#define RT_USING_DFS_UFFS
+//#define RT_USING_DFS_ELMFAT
 
 #define RT_CONFIG_UFFS_ECC_MODE 	UFFS_ECC_SOFT
 #define RT_UFFS_DEVICE_MAX          1

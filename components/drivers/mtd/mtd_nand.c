@@ -241,6 +241,8 @@ int mtd_nand_write(const char* name, int block, int page)
 	{
 		rt_kprintf("write page failed!, rc=%d\n", result);
 	}
+	mtd_dump_hex(page_ptr, nand->page_size);
+	mtd_dump_hex(oob_ptr, nand->oob_size);
 
 	rt_free(page_ptr);
 	return 0;

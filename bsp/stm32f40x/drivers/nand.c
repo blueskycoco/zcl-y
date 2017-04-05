@@ -20,7 +20,7 @@
 #define FSMC_Bank_NAND     FSMC_Bank2_NAND
 #define Bank_NAND_ADDR     Bank2_NAND_ADDR 
 #define Bank2_NAND_ADDR    ((uint32_t)0x70000000) 
-
+#define NAND_MICRON
 typedef struct
 {
   uint8_t Maker_ID;
@@ -68,7 +68,7 @@ typedef struct
 // Nand Flash HY27UF081G2A ???
 #define NAND_PAGE_SIZE             ((uint16_t)0x0800) /* 2048 bytes per page w/o Spare Area */
 #define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
-#define NAND_ZONE_SIZE             ((uint16_t)0x0400) /* 2048 Block per zone */
+#define NAND_ZONE_SIZE             ((uint16_t)0x0800) /* 2048 Block per zone */
 #define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
 #define NAND_MAX_ZONE              ((uint16_t)0x0002) /* 2 zones of 2048 block */
 
@@ -76,7 +76,9 @@ typedef struct
 #define ADDR_2nd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF00) >> 8)      /* 2nd addressing cycle */
 #define ADDR_3rd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF0000) >> 16)   /* 3rd addressing cycle */
 #define ADDR_4th_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF000000) >> 24) /* 4th addressing cycle */  
-
+#ifdef NAND_MICRON
+#define ADDR_5th_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF00000000) >> 32) /* 5th addressing cycle */  
+#endif
 static struct rt_mutex nand;
 static struct rt_mtd_nand_device nand_part;
 void NAND_Init(void);
@@ -213,8 +215,14 @@ static rt_err_t nand_mtd_check_block(
 	   
 	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00; 
 	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x08; 
-	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
-	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+#ifdef NAND_MICRON
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(addr);
+#else
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+#endif
 
 	*(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ_TRUE; 
 
@@ -242,8 +250,14 @@ static rt_err_t nand_mtd_mark_bad_block(
 
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;  
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x08; 
-    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
-    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+#ifdef NAND_MICRON
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(addr);
+#else
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+#endif
 
     /* Write data */
     *(vu8 *)(Bank_NAND_ADDR | DATA_AREA) = 0x00;
@@ -269,7 +283,10 @@ static rt_err_t nand_mtd_copy_page(struct rt_mtd_nand_device* device, rt_off_t s
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0;
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0;
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = src_page&0xFF;
-    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = (src_page&0xFF00)>>8;
+    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = (src_page&0xFF00)>>8;	
+#ifdef NAND_MICRON
+    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = (src_page&0xFF0000)>>16;
+#endif
     *(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_MOVE1;
     
     while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
@@ -279,6 +296,9 @@ static rt_err_t nand_mtd_copy_page(struct rt_mtd_nand_device* device, rt_off_t s
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0;
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = dst_page&0xFF;
     *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = (dst_page&0xFF00)>>8;
+#ifdef NAND_MICRON
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = (dst_page&0xFF0000)>>16;
+#endif
     *(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_MOVE3;
     
     while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
@@ -303,10 +323,14 @@ static rt_err_t nand_mtd_erase_block(
 	rt_uint32_t addr=(block << 6);
 	rt_mutex_take(&nand, RT_WAITING_FOREVER);
 	*(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE0;
-
+#ifdef NAND_MICRON
 	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
 	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
-		
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(addr);
+#else
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(addr);  
+	*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(addr);
+#endif
 	*(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE1; 
 
     while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
@@ -327,15 +351,21 @@ static rt_err_t nand_mtd_read(
 	uint32_t index = 0x0000;
   	uint32_t status = NAND_READY;
 	rt_mutex_take(&nand, RT_WAITING_FOREVER);
+	rt_kprintf("nand_mtd_read page %d, %02x %d,%02x %d\n",page,data,data_len,spare,spare_len);
 	if (data != RT_NULL && data_len != 0)
 	{
 		*(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ_1; 
 	   
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+#ifdef NAND_MICRON
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+#else
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);  
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
-
+#endif
 	    *(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ_TRUE; 
 
 	   	while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
@@ -352,9 +382,15 @@ static rt_err_t nand_mtd_read(
 	   
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x08;
+		
+#ifdef NAND_MICRON
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+#else
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);  
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
-
+#endif
 	    *(vu8 *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ_TRUE; 
 
 	   	while( GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_6) == 0 );
@@ -384,7 +420,7 @@ static rt_err_t nand_mtd_write (
 	uint32_t index = 0x00;
    	uint32_t status = NAND_READY;
 	rt_mutex_take(&nand, RT_WAITING_FOREVER);
-	//rt_kprintf("nand write %02x %d,%02x %d\r\n",data,data_len,spare,spare_len);
+	rt_kprintf("nand write %02x %d,%02x %d\r\n",data,data_len,spare,spare_len);
 	if(data != RT_NULL && data_len != 0 )
 	{
 		RT_ASSERT(data_len == NAND_PAGE_SIZE);
@@ -393,9 +429,14 @@ static rt_err_t nand_mtd_write (
 
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;  
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00; 
+#ifdef NAND_MICRON
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+		*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+#else
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);  
 	    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
-
+#endif
 	    /* Write data */
 	    for(index = 0x0000; index < data_len; index++)
 	    {
@@ -421,8 +462,14 @@ static rt_err_t nand_mtd_write (
 
 		    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;  
 		    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = 0x08; 
+#ifdef NAND_MICRON
+			*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+			*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+			*(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+#else
 		    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);  
 		    *(vu8 *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+#endif
 		}
 	    /* Write data */
 	    for(index = 0x0000; index < spare_len; index++)

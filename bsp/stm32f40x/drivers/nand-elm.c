@@ -25,6 +25,7 @@ static void flash_unlock(void)
 
 static rt_err_t nand_flash_init(rt_device_t dev)
 {
+	FTL_Init();
     return RT_EOK;
 }
 
@@ -53,6 +54,10 @@ static rt_err_t nand_flash_control(rt_device_t dev, rt_uint8_t cmd, void *args)
         geometry->block_size = 64 * geometry->bytes_per_sector;
        	geometry->sector_count = 1024;//4096
 	}
+	else if (cmd == RT_DEVICE_CTRL_BLK_SYNC)
+	{
+		FTL_FlushBlockBuf();
+	}
 	return RT_EOK;
 }
 
@@ -64,11 +69,15 @@ static rt_size_t nand_flash_read(rt_device_t dev,
    
     flash_lock();
    	unsigned char result;
+	rt_uint32_t i;
+	
+	for(i = 0; i < (rt_uint32_t)size; i++)
+	{
+		FTL_ReadSector((rt_uint8_t *)(buffer + i * FTL_Info.SectorSize), (u32)pos+ i);
+	}
     flash_unlock();
-    //if(result == MED_STATUS_SUCCESS)
-    	return size;
 
-	return 0;
+	return size;
 }
 
 static rt_size_t nand_flash_write(rt_device_t dev,

@@ -99,7 +99,7 @@ void sram_free(void *ptr);
 
 int main(void)
 {
-#if 1
+#if 0
 	dev_uart1 = rt_device_find("uart1");
 
 	if (dev_uart1 == RT_NULL) {
@@ -132,8 +132,8 @@ int main(void)
 			uart2_rx, RT_NULL,512, 20, 10));
 	}
 #endif
-	rt_thread_startup(rt_thread_create("led",
-			led_thread, RT_NULL,256, 20, 10));
+	//rt_thread_startup(rt_thread_create("led",
+	//		led_thread, RT_NULL,256, 20, 10));
 	sdram_init();
 #ifdef RT_USING_DFS_UFFS
 	nand_mtd_init();
