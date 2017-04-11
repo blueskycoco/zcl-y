@@ -42,50 +42,46 @@
 #include <fcntl.h>
 #include <msh.h>
 #if 1
-static struct rt_semaphore rx_sem;
-rt_device_t dev_usart1 = RT_NULL;
+static struct rt_semaphore rx_sem_uart2;
+static struct rt_semaphore tx_sem_uart2;
+rt_device_t dev_uart2 = RT_NULL;
 
-static rt_err_t rx_ind(rt_device_t dev, rt_size_t size)
+static rt_err_t rx_ind_uart2(rt_device_t dev, rt_size_t size)
 {
-    rt_sem_release(&rx_sem);
+    rt_sem_release(&rx_sem_uart2);
     return RT_EOK;
 }
+static rt_err_t tx_ind_uart2(rt_device_t dev, void *size)
+{
+    rt_sem_release(&tx_sem_uart2);
+    return RT_EOK;
+}
+
 static void usartd1_rx(void* parameter)
 {
 	int len = 0;
 	rt_uint8_t buf[256] = {0};
 	return;
-	while (1)
-	{	
-		if (rt_sem_take(&rx_sem, RT_WAITING_FOREVER) != RT_EOK) continue;
-		len=rt_device_read(dev_usart1, 0, buf, 256);
-		buf[len]='\0';
-		rt_kprintf("%s", buf);
-	}
+	
 }
-static void usart1_rx(void* parameter)
-{		
-	__attribute__((__aligned__(32))) volatile rt_uint8_t buf[25] = {0};	
-	int i=0;
+static void uart2_rx_int_dma_tx(void* parameter)
+{
+	rt_kprintf("uart2_rx_int_dma_tx start\r\n");
+	int len = 0;
+	rt_uint8_t buf[256] = {0};
 	while (1)
 	{	
-		for(i=0;i<25;i++)
+		if (rt_sem_take(&rx_sem_uart2, RT_WAITING_FOREVER) != RT_EOK) 
 		{
-			buf[i] = 0;
+			rt_kprintf("no message from uart2\n");
+			continue;
 		}
-		rt_device_read(dev_usart1,0,buf,25);	
-		
-		rt_sem_take(&rx_sem, RT_WAITING_FOREVER);
-
-		for(i=0;i<25;i++)
-		{
-			rt_kprintf("%2x,",buf[i]);
+		len=rt_device_read(dev_uart2, 0, buf, 256);
+		if (len > 0) {
+		rt_device_write(dev_uart2,0,buf,len);
+		rt_sem_take(&tx_sem_uart2, RT_WAITING_FOREVER);
 		}
-		rt_kprintf("\n");
-		
-
 	}
-
 }
 #endif
 void mnt_init(void)
@@ -119,44 +115,35 @@ void mnt_init(void)
 	}*/
 }
 //INIT_ENV_EXPORT(mnt_init);
-static struct rt_data_queue data_queue;
-void moa_rx()
+void test_uart2_rx_int_dma_tx(void)
 {
-	const void *data_ptr;
-    rt_size_t data_size;
-	while(1)
-	{
-		rt_data_queue_pop(&data_queue, &data_ptr, &data_size, RT_WAITING_FOREVER);	
-        rt_kprintf("%s\n", data_ptr);
-		rt_free((void *)data_ptr);
+	dev_uart2 = rt_device_find("usart1");
+	if (dev_uart2 == RT_NULL) {
+		rt_kprintf("can not find uart2 \n");
+		return ;
+	}
+	struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
+	config.baud_rate=115200;
+	config.parity=PARITY_NONE;
+	rt_device_control(RT_DEVICE(dev_uart2), RT_DEVICE_CTRL_CONFIG, &config);
+	rt_device_control(RT_DEVICE(dev_uart2), RT_DEVICE_CTRL_SET_INT, (void *)RT_DEVICE_FLAG_INT_RX);
+	if (rt_device_open(dev_uart2, 
+		RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_TX 
+		) == RT_EOK)
+	{		
+		rt_sem_init(&rx_sem_uart2, "uart2_sem", 0, 0);
+		rt_device_set_rx_indicate(dev_uart2, rx_ind_uart2);
+		rt_sem_init(&tx_sem_uart2, "uart2_tsem", 0, 0);
+		rt_device_set_tx_complete(dev_uart2, tx_ind_uart2);
+		rt_thread_startup(rt_thread_create("uart2_rx",
+			uart2_rx_int_dma_tx, RT_NULL,2048, 20, 10));
 	}
 }
-void mob_tx()
-{
-	rt_err_t result;
-	rt_uint8_t *data = RT_NULL;
-	int i = 0;
 
-	while (1) {
-	data = (rt_uint8_t *)rt_calloc(20, sizeof(rt_uint8_t));	
-	//for (i = 0; i< 20; i++)
-	//	data[i] = 0x30 + i;
-	rt_memset(data, 0x30+i, 19);
-	result = rt_data_queue_push(&data_queue, data, 20, RT_WAITING_FOREVER);
-	if (result != RT_EOK)
-	{
-		rt_kprintf("mob push data failed\n");
-	}
-	i++;
-	if (i > 10)
-		i = 0;
-	rt_thread_delay(RT_TICK_PER_SECOND);
-	}
-}
 
 int main(void)
 {
-#if 1
+#if 0
 	dev_usart1 = rt_device_find("usart1");
 
 	if (dev_usart1 == RT_NULL) {
@@ -226,7 +213,7 @@ int main(void)
 //			moa_rx, RT_NULL,1024, 20, 10));
 //	rt_thread_startup(rt_thread_create("thr_mob",
 //			mob_tx, RT_NULL,1024, 20, 10));
-
+	test_uart2_rx_int_dma_tx();
     return 0;
 }
 
