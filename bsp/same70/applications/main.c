@@ -117,7 +117,7 @@ void mnt_init(void)
 //INIT_ENV_EXPORT(mnt_init);
 void test_uart2_rx_int_dma_tx(void)
 {
-	dev_uart2 = rt_device_find("usart1");
+	dev_uart2 = rt_device_find("uart2");
 	if (dev_uart2 == RT_NULL) {
 		rt_kprintf("can not find uart2 \n");
 		return ;
